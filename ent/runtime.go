@@ -2,8 +2,31 @@
 
 package ent
 
+import (
+	"sisco/ent/schema"
+	"sisco/ent/service"
+	"sisco/ent/token"
+	"time"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	serviceFields := schema.Service{}.Fields()
+	_ = serviceFields
+	// serviceDescDescription is the schema descriptor for description field.
+	serviceDescDescription := serviceFields[1].Descriptor()
+	// service.DefaultDescription holds the default value on creation for the description field.
+	service.DefaultDescription = serviceDescDescription.Default.(string)
+	tokenFields := schema.Token{}.Fields()
+	_ = tokenFields
+	// tokenDescCreated is the schema descriptor for created field.
+	tokenDescCreated := tokenFields[2].Descriptor()
+	// token.DefaultCreated holds the default value on creation for the created field.
+	token.DefaultCreated = tokenDescCreated.Default.(time.Time)
+	// tokenDescAdmin is the schema descriptor for admin field.
+	tokenDescAdmin := tokenFields[3].Descriptor()
+	// token.DefaultAdmin holds the default value on creation for the admin field.
+	token.DefaultAdmin = tokenDescAdmin.Default.(bool)
 }

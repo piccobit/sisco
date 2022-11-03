@@ -34,17 +34,28 @@ type Service struct {
 
 // ServiceEdges holds the relations/edges for other nodes in the graph.
 type ServiceEdges struct {
+	// Tags holds the value of the tags edge.
+	Tags []*Tag `json:"tags,omitempty"`
 	// Area holds the value of the area edge.
 	Area *Area `json:"area,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
+}
+
+// TagsOrErr returns the Tags value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) TagsOrErr() ([]*Tag, error) {
+	if e.loadedTypes[0] {
+		return e.Tags, nil
+	}
+	return nil, &NotLoadedError{edge: "tags"}
 }
 
 // AreaOrErr returns the Area value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceEdges) AreaOrErr() (*Area, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.Area == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: area.Label}
@@ -126,6 +137,11 @@ func (s *Service) assignValues(columns []string, values []any) error {
 		}
 	}
 	return nil
+}
+
+// QueryTags queries the "tags" edge of the Service entity.
+func (s *Service) QueryTags() *TagQuery {
+	return (&ServiceClient{config: s.config}).QueryTags(s)
 }
 
 // QueryArea queries the "area" edge of the Service entity.

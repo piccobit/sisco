@@ -1,0 +1,21 @@
+---
+debug: true
+# ginReleaseMode: true
+port: 9999
+dbType: "postgres" # or "mysql"
+dbHost: "localhost"
+dbPort: 5432 # or 3306 for "mysql"
+dbName: "<your-db-name>"
+dbUser: "<your-db-user>"
+dbPassword: "<your-db-password>"
+dbSSLMode: "disable"
+ldapURL: "ldap://localhost:3893"
+ldapBaseDN: "DC=example,DC=com"
+ldapBindDN: "CN=JohnDoe,OU=users,DC=example,DC=com"
+ldapBindPassword: "<your-ldap-password>"
+ldapFilterUsersDN: "(&(objectClass=posixAccount)(memberOf=OU=users,OU=groups,DC=example,DC=com)(uid={user}))"
+ldapFilterAdminsDN: "(&(objectClass=posixAccount)(memberOf=OU=admins,OU=groups,DC=example,DC=com)(uid={user}))"
+# Active Directory
+ldapFilterUsersDN: "(&(objectClass=person)(memberOf=OU=users,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
+ldapFilterAdminsDN: "(&(objectClass=person)(memberOf=OU=admins,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
+tokenValidInSeconds: 1800 # seconds

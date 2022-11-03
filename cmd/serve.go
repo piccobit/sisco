@@ -2,15 +2,23 @@ package cmd
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-ldap/ldap"
 	"github.com/spf13/cobra"
+	"sisco/cfg"
 	"sisco/ent"
 	"sisco/ent/area"
 	"sisco/ent/service"
+	"sisco/ent/tag"
+	"sisco/ent/token"
 )
 
 func init() {
@@ -28,18 +36,19 @@ var serveCmd = &cobra.Command{
 
 var (
 	dbClient *ent.Client
+	ldapConn *ldap.Conn
 )
 
 func serve() {
 	var err error
 
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		Config.DBUser,
-		Config.DBPassword,
-		Config.DBHost,
-		Config.DBPort,
-		Config.DBName,
-		Config.DBSSLMode,
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		cfg.Config.DBUser,
+		cfg.Config.DBPassword,
+		cfg.Config.DBHost,
+		cfg.Config.DBPort,
+		cfg.Config.DBName,
+		cfg.Config.DBSSLMode,
 	)
 
 	dbClient, err = ent.Open("postgres", dbURL)
@@ -53,23 +62,25 @@ func serve() {
 		}
 	}(dbClient)
 
-	if Config.GinReleaseMode {
+	if cfg.Config.GinReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router := gin.Default()
-	err = router.SetTrustedProxies(Config.TrustedProxies)
+	err = router.SetTrustedProxies(cfg.Config.TrustedProxies)
 	if err != nil {
 		log.Fatalf("failed setting trusted proxies: %v", err)
 	}
 
-	router.GET("/get/service/:area/:service", getService)
-	router.GET("/list/areas", listAreas)
-	router.GET("/list/services/:area", listServices)
-	router.POST("/register/area/:area", registerArea)
-	router.POST("/register/service/:area/:service", registerService)
+	router.POST("/login", login)
+	router.GET("/get/service/:area/:service", checkToken(false), getService)
+	router.GET("/list/areas", checkToken(false), listAreas)
+	router.GET("/list/services/:area", checkToken(false), listServices)
+	router.GET("/list/tags", checkToken(false), listTags)
+	router.POST("/register/area/:area", checkToken(true), registerArea)
+	router.POST("/register/service/:area/:service", checkToken(true), registerService)
 
-	listenAddr := fmt.Sprintf(":%s", Config.Port)
+	listenAddr := fmt.Sprintf(":%d", cfg.Config.Port)
 
 	err = router.Run(listenAddr)
 	if err != nil {
@@ -80,7 +91,7 @@ func serve() {
 func listAreas(c *gin.Context) {
 	ctx := context.Background()
 
-	a, err := dbClient.Area.Query().All(ctx)
+	a, err := dbClient.Area.Query().WithServices().All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -92,13 +103,31 @@ func listAreas(c *gin.Context) {
 	c.JSON(http.StatusOK, a)
 }
 
+func listTags(c *gin.Context) {
+	ctx := context.Background()
+
+	t, err := dbClient.Tag.Query().WithService().All(ctx)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, t)
+}
+
 func getService(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
 	paramService := c.Param("service")
 
-	s, err := dbClient.Service.Query().Where(service.And(service.Name(paramService), service.HasAreaWith(area.Name(paramArea)))).Only(ctx)
+	s, err := dbClient.Service.Query().
+		Where(service.And(service.Name(paramService), service.HasAreaWith(area.Name(paramArea)))).
+		WithTags().
+		Only(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -115,7 +144,7 @@ func listServices(c *gin.Context) {
 
 	paramArea := c.Param("area")
 
-	a, err := dbClient.Area.Query().Where(area.Name(paramArea)).WithServices().Only(ctx)
+	s, err := dbClient.Service.Query().Where(service.HasAreaWith(area.Name(paramArea))).WithTags().All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -124,14 +153,15 @@ func listServices(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, a)
+	c.JSON(http.StatusOK, s)
 }
 
 type RegisterService struct {
-	Description string `yaml:"description"`
-	Protocol    string `yaml:"protocol"`
-	Host        string `yaml:"host"`
-	Port        string `yaml:"port"`
+	Description string   `yaml:"description"`
+	Protocol    string   `yaml:"protocol"`
+	Host        string   `yaml:"host"`
+	Port        string   `yaml:"port"`
+	Tags        []string `yaml:"tags,omitempty"`
 }
 
 func registerService(c *gin.Context) {
@@ -163,12 +193,31 @@ func registerService(c *gin.Context) {
 		return
 	}
 
+	var tags []*ent.Tag
+
+	for _, tagName := range rs.Tags {
+		t, _ := dbClient.Tag.Query().Where(tag.Name(tagName)).Only(ctx)
+		if t == nil {
+			t, err = dbClient.Tag.Create().SetName(tagName).Save(ctx)
+			if err != nil {
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": err.Error(),
+				})
+
+				return
+			}
+		}
+
+		tags = append(tags, t)
+	}
+
 	s, err := dbClient.Service.Create().
 		SetName(serviceParam).
 		SetDescription(rs.Description).
 		SetProtocol(rs.Protocol).
 		SetHost(rs.Host).
 		SetPort(rs.Port).
+		AddTags(tags...).
 		Save(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -225,10 +274,22 @@ func registerArea(c *gin.Context) {
 		return
 	}
 
-	_, err = dbClient.Area.Create().
-		SetName(areaParam).
-		SetDescription(ra.Description).
-		Save(ctx)
+	c.JSON(http.StatusOK, gin.H{
+		"area": a,
+	})
+}
+
+type Login struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+}
+
+func login(c *gin.Context) {
+	var l Login
+
+	ctx := context.Background()
+
+	err := c.ShouldBindJSON(&l)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -237,7 +298,158 @@ func registerArea(c *gin.Context) {
 		return
 	}
 
+	authToken := generateSecureToken(32)
+
+	t, err := dbClient.Token.Query().Where(token.User(l.User)).Only(ctx)
+	if t == nil {
+		if ldapConn == nil {
+			ldapConn, err = ldap.DialURL(cfg.Config.LdapURL)
+			if err != nil {
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": err.Error(),
+				})
+
+				return
+			}
+			defer ldapConn.Close()
+		}
+
+		err = ldapConn.Bind(cfg.Config.LdapBindDN, cfg.Config.LdapBindPassword)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": err.Error(),
+			})
+
+			return
+		}
+
+		// We check first if this is an 'admin' token.
+
+		isAdminToken := false
+
+		filter := replace(cfg.Config.LdapFilterAdminsDN, "{user}", ldap.EscapeFilter(l.User))
+
+		searchReq := ldap.NewSearchRequest(cfg.Config.LdapBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, filter, []string{"dn"}, []ldap.Control{})
+
+		result, err := ldapConn.Search(searchReq)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": err.Error(),
+			})
+
+			return
+		}
+
+		if len(result.Entries) != 0 {
+			isAdminToken = true
+		} else {
+			filter = replace(cfg.Config.LdapFilterUsersDN, "{user}", ldap.EscapeFilter(l.User))
+
+			searchReq = ldap.NewSearchRequest(cfg.Config.LdapBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, filter, []string{"dn"}, []ldap.Control{})
+
+			result, err = ldapConn.Search(searchReq)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"error": err.Error(),
+				})
+
+				return
+			}
+
+			if len(result.Entries) == 0 {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"error": "user not found",
+				})
+
+				return
+			}
+		}
+
+		err = ldapConn.Bind(result.Entries[0].DN, l.Password)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": err.Error(),
+			})
+
+			return
+		}
+
+		_, err = dbClient.Token.Create().
+			SetUser(l.User).
+			SetToken(authToken).
+			SetAdmin(isAdminToken).
+			Save(ctx)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+
+			return
+		}
+	} else {
+		_, err = dbClient.Token.Update().Where(token.User(l.User)).SetCreated(time.Now()).Save(ctx)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+
+			return
+		}
+
+		authToken = t.Token
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"area": a,
+		"token": authToken,
 	})
+}
+
+func generateSecureToken(length int) string {
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+	return hex.EncodeToString(b)
+}
+
+func checkToken(isAdminToken bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.Background()
+
+		bearer := c.Request.Header.Get("Bearer")
+
+		if len(bearer) == 0 {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		} else {
+			t, err := dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
+			if err != nil {
+				c.AbortWithStatus(http.StatusUnauthorized)
+			} else {
+				if int(time.Now().Sub(t.Created).Seconds()) > cfg.Config.TokenValidInSeconds {
+					c.AbortWithStatus(http.StatusUnauthorized)
+				} else {
+					if isAdminToken {
+						if t.Admin {
+							c.Next()
+						} else {
+							c.AbortWithStatus(http.StatusUnauthorized)
+						}
+					} else {
+						c.Next()
+					}
+				}
+			}
+		}
+	}
+}
+
+func replace(haystack string, needle string, replacement string) string {
+	res := strings.Replace(
+		haystack,
+		needle,
+		replacement,
+		-1,
+	)
+
+	return res
 }

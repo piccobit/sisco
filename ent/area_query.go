@@ -332,6 +332,11 @@ func (aq *AreaQuery) Select(fields ...string) *AreaSelect {
 	return selbuild
 }
 
+// Aggregate returns a AreaSelect configured with the given aggregations.
+func (aq *AreaQuery) Aggregate(fns ...AggregateFunc) *AreaSelect {
+	return aq.Select().Aggregate(fns...)
+}
+
 func (aq *AreaQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range aq.fields {
 		if !area.ValidColumn(f) {
@@ -568,8 +573,6 @@ func (agb *AreaGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range agb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(agb.fields)+len(agb.fns))
 		for _, f := range agb.fields {
@@ -589,6 +592,12 @@ type AreaSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (as *AreaSelect) Aggregate(fns ...AggregateFunc) *AreaSelect {
+	as.fns = append(as.fns, fns...)
+	return as
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (as *AreaSelect) Scan(ctx context.Context, v any) error {
 	if err := as.prepareQuery(ctx); err != nil {
@@ -599,6 +608,16 @@ func (as *AreaSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (as *AreaSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(as.fns))
+	for _, fn := range as.fns {
+		aggregation = append(aggregation, fn(as.sql))
+	}
+	switch n := len(*as.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		as.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		as.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := as.sql.Query()
 	if err := as.driver.Query(ctx, query, args, rows); err != nil {

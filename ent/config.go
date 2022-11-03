@@ -26,6 +26,8 @@ type config struct {
 type hooks struct {
 	Area    []ent.Hook
 	Service []ent.Hook
+	Tag     []ent.Hook
+	Token   []ent.Hook
 }
 
 // Options applies the options on the config object.

@@ -154,18 +154,10 @@ func (au *AreaUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := au.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: area.FieldName,
-		})
+		_spec.SetField(area.FieldName, field.TypeString, value)
 	}
 	if value, ok := au.mutation.Description(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: area.FieldDescription,
-		})
+		_spec.SetField(area.FieldDescription, field.TypeString, value)
 	}
 	if au.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -396,18 +388,10 @@ func (auo *AreaUpdateOne) sqlSave(ctx context.Context) (_node *Area, err error) 
 		}
 	}
 	if value, ok := auo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: area.FieldName,
-		})
+		_spec.SetField(area.FieldName, field.TypeString, value)
 	}
 	if value, ok := auo.mutation.Description(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: area.FieldDescription,
-		})
+		_spec.SetField(area.FieldDescription, field.TypeString, value)
 	}
 	if auo.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{

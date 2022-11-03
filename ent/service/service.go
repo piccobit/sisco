@@ -17,10 +17,17 @@ const (
 	FieldHost = "host"
 	// FieldPort holds the string denoting the port field in the database.
 	FieldPort = "port"
+	// EdgeTags holds the string denoting the tags edge name in mutations.
+	EdgeTags = "tags"
 	// EdgeArea holds the string denoting the area edge name in mutations.
 	EdgeArea = "area"
 	// Table holds the table name of the service in the database.
 	Table = "services"
+	// TagsTable is the table that holds the tags relation/edge. The primary key declared below.
+	TagsTable = "service_tags"
+	// TagsInverseTable is the table name for the Tag entity.
+	// It exists in this package in order to avoid circular dependency with the "tag" package.
+	TagsInverseTable = "tags"
 	// AreaTable is the table that holds the area relation/edge.
 	AreaTable = "services"
 	// AreaInverseTable is the table name for the Area entity.
@@ -46,6 +53,12 @@ var ForeignKeys = []string{
 	"area_services",
 }
 
+var (
+	// TagsPrimaryKey and TagsColumn2 are the table columns denoting the
+	// primary key for the tags relation (M2M).
+	TagsPrimaryKey = []string{"service_id", "tag_id"}
+)
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
@@ -60,3 +73,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultDescription holds the default value on creation for the "description" field.
+	DefaultDescription string
+)

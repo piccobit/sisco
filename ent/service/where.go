@@ -299,6 +299,20 @@ func DescriptionHasSuffix(v string) predicate.Service {
 	})
 }
 
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDescription)))
+	})
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDescription)))
+	})
+}
+
 // DescriptionEqualFold applies the EqualFold predicate on the "description" field.
 func DescriptionEqualFold(v string) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
@@ -607,6 +621,34 @@ func PortEqualFold(v string) predicate.Service {
 func PortContainsFold(v string) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldPort), v))
+	})
+}
+
+// HasTags applies the HasEdge predicate on the "tags" edge.
+func HasTags() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TagsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTagsWith applies the HasEdge predicate on the "tags" edge with a given conditions (other predicates).
+func HasTagsWith(preds ...predicate.Tag) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TagsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

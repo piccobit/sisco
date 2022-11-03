@@ -9,6 +9,7 @@ import (
 	"sisco/ent/area"
 	"sisco/ent/predicate"
 	"sisco/ent/service"
+	"sisco/ent/tag"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -40,6 +41,20 @@ func (su *ServiceUpdate) SetDescription(s string) *ServiceUpdate {
 	return su
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (su *ServiceUpdate) SetNillableDescription(s *string) *ServiceUpdate {
+	if s != nil {
+		su.SetDescription(*s)
+	}
+	return su
+}
+
+// ClearDescription clears the value of the "description" field.
+func (su *ServiceUpdate) ClearDescription() *ServiceUpdate {
+	su.mutation.ClearDescription()
+	return su
+}
+
 // SetProtocol sets the "protocol" field.
 func (su *ServiceUpdate) SetProtocol(s string) *ServiceUpdate {
 	su.mutation.SetProtocol(s)
@@ -56,6 +71,21 @@ func (su *ServiceUpdate) SetHost(s string) *ServiceUpdate {
 func (su *ServiceUpdate) SetPort(s string) *ServiceUpdate {
 	su.mutation.SetPort(s)
 	return su
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (su *ServiceUpdate) AddTagIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddTagIDs(ids...)
+	return su
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (su *ServiceUpdate) AddTags(t ...*Tag) *ServiceUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return su.AddTagIDs(ids...)
 }
 
 // SetAreaID sets the "area" edge to the Area entity by ID.
@@ -80,6 +110,27 @@ func (su *ServiceUpdate) SetArea(a *Area) *ServiceUpdate {
 // Mutation returns the ServiceMutation object of the builder.
 func (su *ServiceUpdate) Mutation() *ServiceMutation {
 	return su.mutation
+}
+
+// ClearTags clears all "tags" edges to the Tag entity.
+func (su *ServiceUpdate) ClearTags() *ServiceUpdate {
+	su.mutation.ClearTags()
+	return su
+}
+
+// RemoveTagIDs removes the "tags" edge to Tag entities by IDs.
+func (su *ServiceUpdate) RemoveTagIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemoveTagIDs(ids...)
+	return su
+}
+
+// RemoveTags removes "tags" edges to Tag entities.
+func (su *ServiceUpdate) RemoveTags(t ...*Tag) *ServiceUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return su.RemoveTagIDs(ids...)
 }
 
 // ClearArea clears the "area" edge to the Area entity.
@@ -161,39 +212,76 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := su.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldName,
-		})
+		_spec.SetField(service.FieldName, field.TypeString, value)
 	}
 	if value, ok := su.mutation.Description(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldDescription,
-		})
+		_spec.SetField(service.FieldDescription, field.TypeString, value)
+	}
+	if su.mutation.DescriptionCleared() {
+		_spec.ClearField(service.FieldDescription, field.TypeString)
 	}
 	if value, ok := su.mutation.Protocol(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldProtocol,
-		})
+		_spec.SetField(service.FieldProtocol, field.TypeString, value)
 	}
 	if value, ok := su.mutation.Host(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldHost,
-		})
+		_spec.SetField(service.FieldHost, field.TypeString, value)
 	}
 	if value, ok := su.mutation.Port(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldPort,
-		})
+		_spec.SetField(service.FieldPort, field.TypeString, value)
+	}
+	if su.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedTagsIDs(); len(nodes) > 0 && !su.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if su.mutation.AreaCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -261,6 +349,20 @@ func (suo *ServiceUpdateOne) SetDescription(s string) *ServiceUpdateOne {
 	return suo
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (suo *ServiceUpdateOne) SetNillableDescription(s *string) *ServiceUpdateOne {
+	if s != nil {
+		suo.SetDescription(*s)
+	}
+	return suo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (suo *ServiceUpdateOne) ClearDescription() *ServiceUpdateOne {
+	suo.mutation.ClearDescription()
+	return suo
+}
+
 // SetProtocol sets the "protocol" field.
 func (suo *ServiceUpdateOne) SetProtocol(s string) *ServiceUpdateOne {
 	suo.mutation.SetProtocol(s)
@@ -277,6 +379,21 @@ func (suo *ServiceUpdateOne) SetHost(s string) *ServiceUpdateOne {
 func (suo *ServiceUpdateOne) SetPort(s string) *ServiceUpdateOne {
 	suo.mutation.SetPort(s)
 	return suo
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (suo *ServiceUpdateOne) AddTagIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddTagIDs(ids...)
+	return suo
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (suo *ServiceUpdateOne) AddTags(t ...*Tag) *ServiceUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return suo.AddTagIDs(ids...)
 }
 
 // SetAreaID sets the "area" edge to the Area entity by ID.
@@ -301,6 +418,27 @@ func (suo *ServiceUpdateOne) SetArea(a *Area) *ServiceUpdateOne {
 // Mutation returns the ServiceMutation object of the builder.
 func (suo *ServiceUpdateOne) Mutation() *ServiceMutation {
 	return suo.mutation
+}
+
+// ClearTags clears all "tags" edges to the Tag entity.
+func (suo *ServiceUpdateOne) ClearTags() *ServiceUpdateOne {
+	suo.mutation.ClearTags()
+	return suo
+}
+
+// RemoveTagIDs removes the "tags" edge to Tag entities by IDs.
+func (suo *ServiceUpdateOne) RemoveTagIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemoveTagIDs(ids...)
+	return suo
+}
+
+// RemoveTags removes "tags" edges to Tag entities.
+func (suo *ServiceUpdateOne) RemoveTags(t ...*Tag) *ServiceUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return suo.RemoveTagIDs(ids...)
 }
 
 // ClearArea clears the "area" edge to the Area entity.
@@ -412,39 +550,76 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 		}
 	}
 	if value, ok := suo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldName,
-		})
+		_spec.SetField(service.FieldName, field.TypeString, value)
 	}
 	if value, ok := suo.mutation.Description(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldDescription,
-		})
+		_spec.SetField(service.FieldDescription, field.TypeString, value)
+	}
+	if suo.mutation.DescriptionCleared() {
+		_spec.ClearField(service.FieldDescription, field.TypeString)
 	}
 	if value, ok := suo.mutation.Protocol(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldProtocol,
-		})
+		_spec.SetField(service.FieldProtocol, field.TypeString, value)
 	}
 	if value, ok := suo.mutation.Host(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldHost,
-		})
+		_spec.SetField(service.FieldHost, field.TypeString, value)
 	}
 	if value, ok := suo.mutation.Port(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldPort,
-		})
+		_spec.SetField(service.FieldPort, field.TypeString, value)
+	}
+	if suo.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedTagsIDs(); len(nodes) > 0 && !suo.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if suo.mutation.AreaCleared() {
 		edge := &sqlgraph.EdgeSpec{

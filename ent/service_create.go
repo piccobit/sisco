@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sisco/ent/area"
 	"sisco/ent/service"
+	"sisco/ent/tag"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -32,6 +33,14 @@ func (sc *ServiceCreate) SetDescription(s string) *ServiceCreate {
 	return sc
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (sc *ServiceCreate) SetNillableDescription(s *string) *ServiceCreate {
+	if s != nil {
+		sc.SetDescription(*s)
+	}
+	return sc
+}
+
 // SetProtocol sets the "protocol" field.
 func (sc *ServiceCreate) SetProtocol(s string) *ServiceCreate {
 	sc.mutation.SetProtocol(s)
@@ -48,6 +57,21 @@ func (sc *ServiceCreate) SetHost(s string) *ServiceCreate {
 func (sc *ServiceCreate) SetPort(s string) *ServiceCreate {
 	sc.mutation.SetPort(s)
 	return sc
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (sc *ServiceCreate) AddTagIDs(ids ...int) *ServiceCreate {
+	sc.mutation.AddTagIDs(ids...)
+	return sc
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (sc *ServiceCreate) AddTags(t ...*Tag) *ServiceCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return sc.AddTagIDs(ids...)
 }
 
 // SetAreaID sets the "area" edge to the Area entity by ID.
@@ -80,6 +104,7 @@ func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
 		err  error
 		node *Service
 	)
+	sc.defaults()
 	if len(sc.hooks) == 0 {
 		if err = sc.check(); err != nil {
 			return nil, err
@@ -143,13 +168,18 @@ func (sc *ServiceCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (sc *ServiceCreate) defaults() {
+	if _, ok := sc.mutation.Description(); !ok {
+		v := service.DefaultDescription
+		sc.mutation.SetDescription(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (sc *ServiceCreate) check() error {
 	if _, ok := sc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Service.name"`)}
-	}
-	if _, ok := sc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Service.description"`)}
 	}
 	if _, ok := sc.mutation.Protocol(); !ok {
 		return &ValidationError{Name: "protocol", err: errors.New(`ent: missing required field "Service.protocol"`)}
@@ -188,44 +218,43 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := sc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldName,
-		})
+		_spec.SetField(service.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := sc.mutation.Description(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldDescription,
-		})
+		_spec.SetField(service.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
 	if value, ok := sc.mutation.Protocol(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldProtocol,
-		})
+		_spec.SetField(service.FieldProtocol, field.TypeString, value)
 		_node.Protocol = value
 	}
 	if value, ok := sc.mutation.Host(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldHost,
-		})
+		_spec.SetField(service.FieldHost, field.TypeString, value)
 		_node.Host = value
 	}
 	if value, ok := sc.mutation.Port(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: service.FieldPort,
-		})
+		_spec.SetField(service.FieldPort, field.TypeString, value)
 		_node.Port = value
+	}
+	if nodes := sc.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TagsTable,
+			Columns: service.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: tag.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.mutation.AreaIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -264,6 +293,7 @@ func (scb *ServiceCreateBulk) Save(ctx context.Context) ([]*Service, error) {
 	for i := range scb.builders {
 		func(i int, root context.Context) {
 			builder := scb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ServiceMutation)
 				if !ok {

@@ -9,7 +9,10 @@ import (
 	"sisco/ent/area"
 	"sisco/ent/predicate"
 	"sisco/ent/service"
+	"sisco/ent/tag"
+	"sisco/ent/token"
 	"sync"
+	"time"
 
 	"entgo.io/ent"
 )
@@ -25,6 +28,8 @@ const (
 	// Node types.
 	TypeArea    = "Area"
 	TypeService = "Service"
+	TypeTag     = "Tag"
+	TypeToken   = "Token"
 )
 
 // AreaMutation represents an operation that mutates the Area nodes in the graph.
@@ -497,6 +502,9 @@ type ServiceMutation struct {
 	host          *string
 	port          *string
 	clearedFields map[string]struct{}
+	tags          map[int]struct{}
+	removedtags   map[int]struct{}
+	clearedtags   bool
 	area          *int
 	clearedarea   bool
 	done          bool
@@ -669,9 +677,22 @@ func (m *ServiceMutation) OldDescription(ctx context.Context) (v string, err err
 	return oldValue.Description, nil
 }
 
+// ClearDescription clears the value of the "description" field.
+func (m *ServiceMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[service.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ServiceMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[service.FieldDescription]
+	return ok
+}
+
 // ResetDescription resets all changes to the "description" field.
 func (m *ServiceMutation) ResetDescription() {
 	m.description = nil
+	delete(m.clearedFields, service.FieldDescription)
 }
 
 // SetProtocol sets the "protocol" field.
@@ -780,6 +801,60 @@ func (m *ServiceMutation) OldPort(ctx context.Context) (v string, err error) {
 // ResetPort resets all changes to the "port" field.
 func (m *ServiceMutation) ResetPort() {
 	m.port = nil
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by ids.
+func (m *ServiceMutation) AddTagIDs(ids ...int) {
+	if m.tags == nil {
+		m.tags = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTags clears the "tags" edge to the Tag entity.
+func (m *ServiceMutation) ClearTags() {
+	m.clearedtags = true
+}
+
+// TagsCleared reports if the "tags" edge to the Tag entity was cleared.
+func (m *ServiceMutation) TagsCleared() bool {
+	return m.clearedtags
+}
+
+// RemoveTagIDs removes the "tags" edge to the Tag entity by IDs.
+func (m *ServiceMutation) RemoveTagIDs(ids ...int) {
+	if m.removedtags == nil {
+		m.removedtags = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.tags, ids[i])
+		m.removedtags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTags returns the removed IDs of the "tags" edge to the Tag entity.
+func (m *ServiceMutation) RemovedTagsIDs() (ids []int) {
+	for id := range m.removedtags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TagsIDs returns the "tags" edge IDs in the mutation.
+func (m *ServiceMutation) TagsIDs() (ids []int) {
+	for id := range m.tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTags resets all changes to the "tags" edge.
+func (m *ServiceMutation) ResetTags() {
+	m.tags = nil
+	m.clearedtags = false
+	m.removedtags = nil
 }
 
 // SetAreaID sets the "area" edge to the Area entity by id.
@@ -966,7 +1041,11 @@ func (m *ServiceMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ServiceMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(service.FieldDescription) {
+		fields = append(fields, service.FieldDescription)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -979,6 +1058,11 @@ func (m *ServiceMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ServiceMutation) ClearField(name string) error {
+	switch name {
+	case service.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
 	return fmt.Errorf("unknown Service nullable field %s", name)
 }
 
@@ -1007,7 +1091,10 @@ func (m *ServiceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ServiceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.tags != nil {
+		edges = append(edges, service.EdgeTags)
+	}
 	if m.area != nil {
 		edges = append(edges, service.EdgeArea)
 	}
@@ -1018,6 +1105,12 @@ func (m *ServiceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ServiceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case service.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.tags))
+		for id := range m.tags {
+			ids = append(ids, id)
+		}
+		return ids
 	case service.EdgeArea:
 		if id := m.area; id != nil {
 			return []ent.Value{*id}
@@ -1028,19 +1121,33 @@ func (m *ServiceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ServiceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedtags != nil {
+		edges = append(edges, service.EdgeTags)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ServiceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case service.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.removedtags))
+		for id := range m.removedtags {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ServiceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.clearedtags {
+		edges = append(edges, service.EdgeTags)
+	}
 	if m.clearedarea {
 		edges = append(edges, service.EdgeArea)
 	}
@@ -1051,6 +1158,8 @@ func (m *ServiceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ServiceMutation) EdgeCleared(name string) bool {
 	switch name {
+	case service.EdgeTags:
+		return m.clearedtags
 	case service.EdgeArea:
 		return m.clearedarea
 	}
@@ -1072,9 +1181,889 @@ func (m *ServiceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ServiceMutation) ResetEdge(name string) error {
 	switch name {
+	case service.EdgeTags:
+		m.ResetTags()
+		return nil
 	case service.EdgeArea:
 		m.ResetArea()
 		return nil
 	}
 	return fmt.Errorf("unknown Service edge %s", name)
+}
+
+// TagMutation represents an operation that mutates the Tag nodes in the graph.
+type TagMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	name           *string
+	clearedFields  map[string]struct{}
+	service        map[int]struct{}
+	removedservice map[int]struct{}
+	clearedservice bool
+	done           bool
+	oldValue       func(context.Context) (*Tag, error)
+	predicates     []predicate.Tag
+}
+
+var _ ent.Mutation = (*TagMutation)(nil)
+
+// tagOption allows management of the mutation configuration using functional options.
+type tagOption func(*TagMutation)
+
+// newTagMutation creates new mutation for the Tag entity.
+func newTagMutation(c config, op Op, opts ...tagOption) *TagMutation {
+	m := &TagMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTag,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTagID sets the ID field of the mutation.
+func withTagID(id int) tagOption {
+	return func(m *TagMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Tag
+		)
+		m.oldValue = func(ctx context.Context) (*Tag, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Tag.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTag sets the old Tag of the mutation.
+func withTag(node *Tag) tagOption {
+	return func(m *TagMutation) {
+		m.oldValue = func(context.Context) (*Tag, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TagMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TagMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TagMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TagMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Tag.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *TagMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *TagMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Tag entity.
+// If the Tag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TagMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *TagMutation) ResetName() {
+	m.name = nil
+}
+
+// AddServiceIDs adds the "service" edge to the Service entity by ids.
+func (m *TagMutation) AddServiceIDs(ids ...int) {
+	if m.service == nil {
+		m.service = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.service[ids[i]] = struct{}{}
+	}
+}
+
+// ClearService clears the "service" edge to the Service entity.
+func (m *TagMutation) ClearService() {
+	m.clearedservice = true
+}
+
+// ServiceCleared reports if the "service" edge to the Service entity was cleared.
+func (m *TagMutation) ServiceCleared() bool {
+	return m.clearedservice
+}
+
+// RemoveServiceIDs removes the "service" edge to the Service entity by IDs.
+func (m *TagMutation) RemoveServiceIDs(ids ...int) {
+	if m.removedservice == nil {
+		m.removedservice = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.service, ids[i])
+		m.removedservice[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedService returns the removed IDs of the "service" edge to the Service entity.
+func (m *TagMutation) RemovedServiceIDs() (ids []int) {
+	for id := range m.removedservice {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ServiceIDs returns the "service" edge IDs in the mutation.
+func (m *TagMutation) ServiceIDs() (ids []int) {
+	for id := range m.service {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetService resets all changes to the "service" edge.
+func (m *TagMutation) ResetService() {
+	m.service = nil
+	m.clearedservice = false
+	m.removedservice = nil
+}
+
+// Where appends a list predicates to the TagMutation builder.
+func (m *TagMutation) Where(ps ...predicate.Tag) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *TagMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Tag).
+func (m *TagMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TagMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.name != nil {
+		fields = append(fields, tag.FieldName)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TagMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tag.FieldName:
+		return m.Name()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TagMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tag.FieldName:
+		return m.OldName(ctx)
+	}
+	return nil, fmt.Errorf("unknown Tag field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TagMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tag.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Tag field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TagMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TagMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TagMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Tag numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TagMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TagMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TagMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Tag nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TagMutation) ResetField(name string) error {
+	switch name {
+	case tag.FieldName:
+		m.ResetName()
+		return nil
+	}
+	return fmt.Errorf("unknown Tag field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TagMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.service != nil {
+		edges = append(edges, tag.EdgeService)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TagMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case tag.EdgeService:
+		ids := make([]ent.Value, 0, len(m.service))
+		for id := range m.service {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TagMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedservice != nil {
+		edges = append(edges, tag.EdgeService)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TagMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case tag.EdgeService:
+		ids := make([]ent.Value, 0, len(m.removedservice))
+		for id := range m.removedservice {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TagMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedservice {
+		edges = append(edges, tag.EdgeService)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TagMutation) EdgeCleared(name string) bool {
+	switch name {
+	case tag.EdgeService:
+		return m.clearedservice
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TagMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Tag unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TagMutation) ResetEdge(name string) error {
+	switch name {
+	case tag.EdgeService:
+		m.ResetService()
+		return nil
+	}
+	return fmt.Errorf("unknown Tag edge %s", name)
+}
+
+// TokenMutation represents an operation that mutates the Token nodes in the graph.
+type TokenMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	user          *string
+	token         *string
+	created       *time.Time
+	admin         *bool
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Token, error)
+	predicates    []predicate.Token
+}
+
+var _ ent.Mutation = (*TokenMutation)(nil)
+
+// tokenOption allows management of the mutation configuration using functional options.
+type tokenOption func(*TokenMutation)
+
+// newTokenMutation creates new mutation for the Token entity.
+func newTokenMutation(c config, op Op, opts ...tokenOption) *TokenMutation {
+	m := &TokenMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeToken,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTokenID sets the ID field of the mutation.
+func withTokenID(id int) tokenOption {
+	return func(m *TokenMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Token
+		)
+		m.oldValue = func(ctx context.Context) (*Token, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Token.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withToken sets the old Token of the mutation.
+func withToken(node *Token) tokenOption {
+	return func(m *TokenMutation) {
+		m.oldValue = func(context.Context) (*Token, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TokenMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TokenMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TokenMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TokenMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Token.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUser sets the "user" field.
+func (m *TokenMutation) SetUser(s string) {
+	m.user = &s
+}
+
+// User returns the value of the "user" field in the mutation.
+func (m *TokenMutation) User() (r string, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUser returns the old "user" field's value of the Token entity.
+// If the Token object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenMutation) OldUser(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUser is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUser requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUser: %w", err)
+	}
+	return oldValue.User, nil
+}
+
+// ResetUser resets all changes to the "user" field.
+func (m *TokenMutation) ResetUser() {
+	m.user = nil
+}
+
+// SetToken sets the "token" field.
+func (m *TokenMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *TokenMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the Token entity.
+// If the Token object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *TokenMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetCreated sets the "created" field.
+func (m *TokenMutation) SetCreated(t time.Time) {
+	m.created = &t
+}
+
+// Created returns the value of the "created" field in the mutation.
+func (m *TokenMutation) Created() (r time.Time, exists bool) {
+	v := m.created
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreated returns the old "created" field's value of the Token entity.
+// If the Token object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenMutation) OldCreated(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreated: %w", err)
+	}
+	return oldValue.Created, nil
+}
+
+// ResetCreated resets all changes to the "created" field.
+func (m *TokenMutation) ResetCreated() {
+	m.created = nil
+}
+
+// SetAdmin sets the "admin" field.
+func (m *TokenMutation) SetAdmin(b bool) {
+	m.admin = &b
+}
+
+// Admin returns the value of the "admin" field in the mutation.
+func (m *TokenMutation) Admin() (r bool, exists bool) {
+	v := m.admin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAdmin returns the old "admin" field's value of the Token entity.
+// If the Token object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenMutation) OldAdmin(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAdmin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAdmin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAdmin: %w", err)
+	}
+	return oldValue.Admin, nil
+}
+
+// ResetAdmin resets all changes to the "admin" field.
+func (m *TokenMutation) ResetAdmin() {
+	m.admin = nil
+}
+
+// Where appends a list predicates to the TokenMutation builder.
+func (m *TokenMutation) Where(ps ...predicate.Token) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *TokenMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Token).
+func (m *TokenMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TokenMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.user != nil {
+		fields = append(fields, token.FieldUser)
+	}
+	if m.token != nil {
+		fields = append(fields, token.FieldToken)
+	}
+	if m.created != nil {
+		fields = append(fields, token.FieldCreated)
+	}
+	if m.admin != nil {
+		fields = append(fields, token.FieldAdmin)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TokenMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case token.FieldUser:
+		return m.User()
+	case token.FieldToken:
+		return m.Token()
+	case token.FieldCreated:
+		return m.Created()
+	case token.FieldAdmin:
+		return m.Admin()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TokenMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case token.FieldUser:
+		return m.OldUser(ctx)
+	case token.FieldToken:
+		return m.OldToken(ctx)
+	case token.FieldCreated:
+		return m.OldCreated(ctx)
+	case token.FieldAdmin:
+		return m.OldAdmin(ctx)
+	}
+	return nil, fmt.Errorf("unknown Token field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TokenMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case token.FieldUser:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUser(v)
+		return nil
+	case token.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case token.FieldCreated:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreated(v)
+		return nil
+	case token.FieldAdmin:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAdmin(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Token field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TokenMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TokenMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TokenMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Token numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TokenMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TokenMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TokenMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Token nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TokenMutation) ResetField(name string) error {
+	switch name {
+	case token.FieldUser:
+		m.ResetUser()
+		return nil
+	case token.FieldToken:
+		m.ResetToken()
+		return nil
+	case token.FieldCreated:
+		m.ResetCreated()
+		return nil
+	case token.FieldAdmin:
+		m.ResetAdmin()
+		return nil
+	}
+	return fmt.Errorf("unknown Token field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TokenMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TokenMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TokenMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TokenMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TokenMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TokenMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TokenMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Token unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TokenMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Token edge %s", name)
 }

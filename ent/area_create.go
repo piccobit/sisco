@@ -157,19 +157,11 @@ func (ac *AreaCreate) createSpec() (*Area, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := ac.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: area.FieldName,
-		})
+		_spec.SetField(area.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := ac.mutation.Description(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: area.FieldDescription,
-		})
+		_spec.SetField(area.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
 	if nodes := ac.mutation.ServicesIDs(); len(nodes) > 0 {

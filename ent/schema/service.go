@@ -15,7 +15,7 @@ type Service struct {
 func (Service) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
-		field.String("description"),
+		field.String("description").Optional().Default(""),
 		field.String("protocol"),
 		field.String("host"),
 		field.String("port"),
@@ -25,8 +25,7 @@ func (Service) Fields() []ent.Field {
 // Edges of the Service.
 func (Service) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("area", Area.Type).
-			Ref("services").
-			Unique(),
+		edge.To("tags", Tag.Type),
+		edge.From("area", Area.Type).Ref("services").Unique(),
 	}
 }

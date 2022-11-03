@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"sisco/ent/area"
 	"sisco/ent/service"
+	"sisco/ent/tag"
+	"sisco/ent/token"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -34,6 +36,8 @@ func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		area.Table:    area.ValidColumn,
 		service.Table: service.ValidColumn,
+		tag.Table:     tag.ValidColumn,
+		token.Table:   token.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {
@@ -265,6 +269,7 @@ func IsConstraintError(err error) bool {
 type selector struct {
 	label string
 	flds  *[]string
+	fns   []AggregateFunc
 	scan  func(context.Context, any) error
 }
 

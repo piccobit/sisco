@@ -11,3 +11,9 @@ type Area func(*sql.Selector)
 
 // Service is the predicate function for service builders.
 type Service func(*sql.Selector)
+
+// Tag is the predicate function for tag builders.
+type Tag func(*sql.Selector)
+
+// Token is the predicate function for token builders.
+type Token func(*sql.Selector)

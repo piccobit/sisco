@@ -4,11 +4,13 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"sisco/ent/area"
 	"sisco/ent/predicate"
 	"sisco/ent/service"
+	"sisco/ent/tag"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,6 +26,7 @@ type ServiceQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Service
+	withTags   *TagQuery
 	withArea   *AreaQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
@@ -60,6 +63,28 @@ func (sq *ServiceQuery) Unique(unique bool) *ServiceQuery {
 func (sq *ServiceQuery) Order(o ...OrderFunc) *ServiceQuery {
 	sq.order = append(sq.order, o...)
 	return sq
+}
+
+// QueryTags chains the current query on the "tags" edge.
+func (sq *ServiceQuery) QueryTags() *TagQuery {
+	query := &TagQuery{config: sq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, selector),
+			sqlgraph.To(tag.Table, tag.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, service.TagsTable, service.TagsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryArea chains the current query on the "area" edge.
@@ -265,12 +290,24 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		offset:     sq.offset,
 		order:      append([]OrderFunc{}, sq.order...),
 		predicates: append([]predicate.Service{}, sq.predicates...),
+		withTags:   sq.withTags.Clone(),
 		withArea:   sq.withArea.Clone(),
 		// clone intermediate query.
 		sql:    sq.sql.Clone(),
 		path:   sq.path,
 		unique: sq.unique,
 	}
+}
+
+// WithTags tells the query-builder to eager-load the nodes that are connected to
+// the "tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithTags(opts ...func(*TagQuery)) *ServiceQuery {
+	query := &TagQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withTags = query
+	return sq
 }
 
 // WithArea tells the query-builder to eager-load the nodes that are connected to
@@ -332,6 +369,11 @@ func (sq *ServiceQuery) Select(fields ...string) *ServiceSelect {
 	return selbuild
 }
 
+// Aggregate returns a ServiceSelect configured with the given aggregations.
+func (sq *ServiceQuery) Aggregate(fns ...AggregateFunc) *ServiceSelect {
+	return sq.Select().Aggregate(fns...)
+}
+
 func (sq *ServiceQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range sq.fields {
 		if !service.ValidColumn(f) {
@@ -353,7 +395,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 		nodes       = []*Service{}
 		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
+			sq.withTags != nil,
 			sq.withArea != nil,
 		}
 	)
@@ -381,6 +424,13 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := sq.withTags; query != nil {
+		if err := sq.loadTags(ctx, query, nodes,
+			func(n *Service) { n.Edges.Tags = []*Tag{} },
+			func(n *Service, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := sq.withArea; query != nil {
 		if err := sq.loadArea(ctx, query, nodes, nil,
 			func(n *Service, e *Area) { n.Edges.Area = e }); err != nil {
@@ -390,6 +440,64 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	return nodes, nil
 }
 
+func (sq *ServiceQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*Service, init func(*Service), assign func(*Service, *Tag)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Service)
+	nids := make(map[int]map[*Service]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(service.TagsTable)
+		s.Join(joinT).On(s.C(tag.FieldID), joinT.C(service.TagsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(service.TagsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(service.TagsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(sql.NullInt64)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := int(values[0].(*sql.NullInt64).Int64)
+			inValue := int(values[1].(*sql.NullInt64).Int64)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*Service]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "tags" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (sq *ServiceQuery) loadArea(ctx context.Context, query *AreaQuery, nodes []*Service, init func(*Service), assign func(*Service, *Area)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Service)
@@ -572,8 +680,6 @@ func (sgb *ServiceGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range sgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(sgb.fields)+len(sgb.fns))
 		for _, f := range sgb.fields {
@@ -593,6 +699,12 @@ type ServiceSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (ss *ServiceSelect) Aggregate(fns ...AggregateFunc) *ServiceSelect {
+	ss.fns = append(ss.fns, fns...)
+	return ss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (ss *ServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := ss.prepareQuery(ctx); err != nil {
@@ -603,6 +715,16 @@ func (ss *ServiceSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (ss *ServiceSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(ss.fns))
+	for _, fn := range ss.fns {
+		aggregation = append(aggregation, fn(ss.sql))
+	}
+	switch n := len(*ss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		ss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		ss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := ss.sql.Query()
 	if err := ss.driver.Query(ctx, query, args, rows); err != nil {

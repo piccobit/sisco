@@ -12,6 +12,8 @@ import (
 
 	"sisco/ent/area"
 	"sisco/ent/service"
+	"sisco/ent/tag"
+	"sisco/ent/token"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -27,6 +29,10 @@ type Client struct {
 	Area *AreaClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// Tag is the client for interacting with the Tag builders.
+	Tag *TagClient
+	// Token is the client for interacting with the Token builders.
+	Token *TokenClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -42,6 +48,8 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Area = NewAreaClient(c.config)
 	c.Service = NewServiceClient(c.config)
+	c.Tag = NewTagClient(c.config)
+	c.Token = NewTokenClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -77,6 +85,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:  cfg,
 		Area:    NewAreaClient(cfg),
 		Service: NewServiceClient(cfg),
+		Tag:     NewTagClient(cfg),
+		Token:   NewTokenClient(cfg),
 	}, nil
 }
 
@@ -98,6 +108,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:  cfg,
 		Area:    NewAreaClient(cfg),
 		Service: NewServiceClient(cfg),
+		Tag:     NewTagClient(cfg),
+		Token:   NewTokenClient(cfg),
 	}, nil
 }
 
@@ -128,6 +140,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Area.Use(hooks...)
 	c.Service.Use(hooks...)
+	c.Tag.Use(hooks...)
+	c.Token.Use(hooks...)
 }
 
 // AreaClient is a client for the Area schema.
@@ -186,7 +200,7 @@ func (c *AreaClient) DeleteOne(a *Area) *AreaDeleteOne {
 	return c.DeleteOneID(a.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *AreaClient) DeleteOneID(id int) *AreaDeleteOne {
 	builder := c.Delete().Where(area.ID(id))
 	builder.mutation.id = &id
@@ -218,7 +232,7 @@ func (c *AreaClient) GetX(ctx context.Context, id int) *Area {
 // QueryServices queries the services edge of a Area.
 func (c *AreaClient) QueryServices(a *Area) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(area.Table, area.FieldID, id),
@@ -292,7 +306,7 @@ func (c *ServiceClient) DeleteOne(s *Service) *ServiceDeleteOne {
 	return c.DeleteOneID(s.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ServiceClient) DeleteOneID(id int) *ServiceDeleteOne {
 	builder := c.Delete().Where(service.ID(id))
 	builder.mutation.id = &id
@@ -321,10 +335,26 @@ func (c *ServiceClient) GetX(ctx context.Context, id int) *Service {
 	return obj
 }
 
+// QueryTags queries the tags edge of a Service.
+func (c *ServiceClient) QueryTags(s *Service) *TagQuery {
+	query := &TagQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, id),
+			sqlgraph.To(tag.Table, tag.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, service.TagsTable, service.TagsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryArea queries the area edge of a Service.
 func (c *ServiceClient) QueryArea(s *Service) *AreaQuery {
 	query := &AreaQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(service.Table, service.FieldID, id),
@@ -340,4 +370,200 @@ func (c *ServiceClient) QueryArea(s *Service) *AreaQuery {
 // Hooks returns the client hooks.
 func (c *ServiceClient) Hooks() []Hook {
 	return c.hooks.Service
+}
+
+// TagClient is a client for the Tag schema.
+type TagClient struct {
+	config
+}
+
+// NewTagClient returns a client for the Tag from the given config.
+func NewTagClient(c config) *TagClient {
+	return &TagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tag.Hooks(f(g(h())))`.
+func (c *TagClient) Use(hooks ...Hook) {
+	c.hooks.Tag = append(c.hooks.Tag, hooks...)
+}
+
+// Create returns a builder for creating a Tag entity.
+func (c *TagClient) Create() *TagCreate {
+	mutation := newTagMutation(c.config, OpCreate)
+	return &TagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Tag entities.
+func (c *TagClient) CreateBulk(builders ...*TagCreate) *TagCreateBulk {
+	return &TagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Tag.
+func (c *TagClient) Update() *TagUpdate {
+	mutation := newTagMutation(c.config, OpUpdate)
+	return &TagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TagClient) UpdateOne(t *Tag) *TagUpdateOne {
+	mutation := newTagMutation(c.config, OpUpdateOne, withTag(t))
+	return &TagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TagClient) UpdateOneID(id int) *TagUpdateOne {
+	mutation := newTagMutation(c.config, OpUpdateOne, withTagID(id))
+	return &TagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Tag.
+func (c *TagClient) Delete() *TagDelete {
+	mutation := newTagMutation(c.config, OpDelete)
+	return &TagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TagClient) DeleteOne(t *Tag) *TagDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TagClient) DeleteOneID(id int) *TagDeleteOne {
+	builder := c.Delete().Where(tag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TagDeleteOne{builder}
+}
+
+// Query returns a query builder for Tag.
+func (c *TagClient) Query() *TagQuery {
+	return &TagQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Tag entity by its id.
+func (c *TagClient) Get(ctx context.Context, id int) (*Tag, error) {
+	return c.Query().Where(tag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TagClient) GetX(ctx context.Context, id int) *Tag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryService queries the service edge of a Tag.
+func (c *TagClient) QueryService(t *Tag) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tag.Table, tag.FieldID, id),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, tag.ServiceTable, tag.ServicePrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TagClient) Hooks() []Hook {
+	return c.hooks.Tag
+}
+
+// TokenClient is a client for the Token schema.
+type TokenClient struct {
+	config
+}
+
+// NewTokenClient returns a client for the Token from the given config.
+func NewTokenClient(c config) *TokenClient {
+	return &TokenClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `token.Hooks(f(g(h())))`.
+func (c *TokenClient) Use(hooks ...Hook) {
+	c.hooks.Token = append(c.hooks.Token, hooks...)
+}
+
+// Create returns a builder for creating a Token entity.
+func (c *TokenClient) Create() *TokenCreate {
+	mutation := newTokenMutation(c.config, OpCreate)
+	return &TokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Token entities.
+func (c *TokenClient) CreateBulk(builders ...*TokenCreate) *TokenCreateBulk {
+	return &TokenCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Token.
+func (c *TokenClient) Update() *TokenUpdate {
+	mutation := newTokenMutation(c.config, OpUpdate)
+	return &TokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TokenClient) UpdateOne(t *Token) *TokenUpdateOne {
+	mutation := newTokenMutation(c.config, OpUpdateOne, withToken(t))
+	return &TokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TokenClient) UpdateOneID(id int) *TokenUpdateOne {
+	mutation := newTokenMutation(c.config, OpUpdateOne, withTokenID(id))
+	return &TokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Token.
+func (c *TokenClient) Delete() *TokenDelete {
+	mutation := newTokenMutation(c.config, OpDelete)
+	return &TokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TokenClient) DeleteOne(t *Token) *TokenDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TokenClient) DeleteOneID(id int) *TokenDeleteOne {
+	builder := c.Delete().Where(token.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TokenDeleteOne{builder}
+}
+
+// Query returns a query builder for Token.
+func (c *TokenClient) Query() *TokenQuery {
+	return &TokenQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Token entity by its id.
+func (c *TokenClient) Get(ctx context.Context, id int) (*Token, error) {
+	return c.Query().Where(token.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TokenClient) GetX(ctx context.Context, id int) *Token {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TokenClient) Hooks() []Hook {
+	return c.hooks.Token
 }
