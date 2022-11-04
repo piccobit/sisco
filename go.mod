@@ -5,11 +5,13 @@ go 1.19
 require (
 	ariga.io/atlas v0.7.3-0.20221011160332-3ca609863edd
 	entgo.io/ent v0.11.4
+	github.com/a8m/envsubst v1.3.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-ldap/ldap v3.0.3+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/lib/pq v1.10.7
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
 )

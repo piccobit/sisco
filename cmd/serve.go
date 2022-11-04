@@ -73,12 +73,15 @@ func serve() {
 	}
 
 	router.POST("/login", login)
-	router.GET("/get/service/:area/:service", checkToken(false), getService)
+	router.GET("/get/service/:service/in/:area", checkToken(false), getServiceInArea)
 	router.GET("/list/areas", checkToken(false), listAreas)
-	router.GET("/list/services/:area", checkToken(false), listServices)
+	router.GET("/list/services/in/:area", checkToken(false), listServicesInArea)
+	router.GET("/list/services/with/:tag", checkToken(false), listServicesWithTag)
 	router.GET("/list/tags", checkToken(false), listTags)
 	router.POST("/register/area/:area", checkToken(true), registerArea)
-	router.POST("/register/service/:area/:service", checkToken(true), registerService)
+	router.POST("/register/service/:service/in/:area", checkToken(true), registerServiceInArea)
+	router.DELETE("/delete/service/:service/in/:area", checkToken(true), deleteServiceInArea)
+	router.DELETE("/delete/area/:area", checkToken(true), deleteArea)
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.Port)
 
@@ -118,7 +121,7 @@ func listTags(c *gin.Context) {
 	c.JSON(http.StatusOK, t)
 }
 
-func getService(c *gin.Context) {
+func getServiceInArea(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
@@ -139,12 +142,87 @@ func getService(c *gin.Context) {
 	c.JSON(http.StatusOK, s)
 }
 
-func listServices(c *gin.Context) {
+func deleteServiceInArea(c *gin.Context) {
+	ctx := context.Background()
+
+	paramArea := c.Param("area")
+	paramService := c.Param("service")
+
+	_, err := dbClient.Service.Delete().
+		Where(service.And(service.Name(paramService), service.HasAreaWith(area.Name(paramArea)))).Exec(ctx)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "deleted",
+	})
+}
+
+func deleteArea(c *gin.Context) {
+	ctx := context.Background()
+
+	paramArea := c.Param("area")
+
+	numServices, err := dbClient.Service.Query().Where(service.HasAreaWith(area.Name(paramArea))).Count(ctx)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	if numServices > 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": fmt.Sprintf("area '%s' is not empty", paramArea),
+		})
+
+		return
+	}
+
+	_, err = dbClient.Area.Delete().
+		Where(area.Name(paramArea)).Exec(ctx)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "deleted",
+	})
+}
+
+func listServicesInArea(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
 
 	s, err := dbClient.Service.Query().Where(service.HasAreaWith(area.Name(paramArea))).WithTags().All(ctx)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, s)
+}
+
+func listServicesWithTag(c *gin.Context) {
+	ctx := context.Background()
+
+	paramTag := c.Param("tag")
+
+	s, err := dbClient.Service.Query().Where(service.HasTagsWith(tag.Name(paramTag))).WithTags().All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -164,7 +242,7 @@ type RegisterService struct {
 	Tags        []string `yaml:"tags,omitempty"`
 }
 
-func registerService(c *gin.Context) {
+func registerServiceInArea(c *gin.Context) {
 	var err error
 	var rs RegisterService
 

@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/a8m/envsubst"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,8 +53,18 @@ func New(cfgFile string) {
 
 func initConfig() {
 	if configFile != "" {
+		filename, err := homedir.Expand(configFile)
+		if err != nil {
+			log.Fatalf("home directory for config file path '%s' not found: %v", configFile, err)
+		}
+
+		filename, err = envsubst.String(filename)
+		if err != nil {
+			log.Fatalf("could not envsubst config file path '%s' not found: %v", configFile, err)
+		}
+
 		// Use config file from the flag.
-		viper.SetConfigFile(configFile)
+		viper.SetConfigFile(filename)
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
