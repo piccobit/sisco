@@ -19,6 +19,31 @@ database.
 
 The configuration for `sisco` is stored in a file called `.sisco.yaml` in the home directory of the user. Use the command line option `-c` or `--config` to specify an alternative configuration file.
 
+Below listed is a sample configuration file:
+
+```yaml
+debug: true
+ginReleaseMode: false
+port: 9999
+dbType: "postgres"
+dbHost: "localhost"
+dbPort: 5432
+dbName: "<your-db-name>"
+dbUser: "<your-db-user>"
+dbPassword: "<your-db-password>"
+dbSSLMode: "disable"
+ldapURL: "ldap://localhost:3893"
+ldapBaseDN: "DC=example,DC=com"
+ldapBindDN: "CN=JohnDoe,OU=users,DC=example,DC=com"
+ldapBindPassword: "<your-ldap-password>"
+ldapFilterUsersDN: "(&(objectClass=posixAccount)(memberOf=OU=users,OU=groups,DC=example,DC=com)(uid={user}))"
+ldapFilterAdminsDN: "(&(objectClass=posixAccount)(memberOf=OU=admins,OU=groups,DC=example,DC=com)(uid={user}))"
+# Active Directory
+# ldapFilterUsersDN: "(&(objectClass=person)(memberOf=OU=Users,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
+# ldapFilterAdminsDN: "(&(objectClass=person)(memberOf=OU=Admins,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
+tokenValidInSeconds: 1800
+```
+
 ## Database Setup
 
 As soon as your configuration is ready, the initial database setup for `sisco` is pretty easy, just execute the following command:
