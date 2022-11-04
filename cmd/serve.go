@@ -72,16 +72,26 @@ func serve() {
 		log.Fatalf("failed setting trusted proxies: %v", err)
 	}
 
-	router.POST("/login", login)
-	router.GET("/get/service/:service/in/:area", checkToken(false), getServiceInArea)
-	router.GET("/list/areas", checkToken(false), listAreas)
-	router.GET("/list/services/in/:area", checkToken(false), listServicesInArea)
-	router.GET("/list/services/with/:tag", checkToken(false), listServicesWithTag)
-	router.GET("/list/tags", checkToken(false), listTags)
-	router.POST("/register/area/:area", checkToken(true), registerArea)
-	router.POST("/register/service/:service/in/:area", checkToken(true), registerServiceInArea)
-	router.DELETE("/delete/service/:service/in/:area", checkToken(true), deleteServiceInArea)
-	router.DELETE("/delete/area/:area", checkToken(true), deleteArea)
+	v1Group := router.Group("/api/v1")
+	v1Group.POST("/login", login)
+
+	getGroup := v1Group.Group("/get")
+	getGroup.GET("/service/:service/in/:area", checkToken(false), getServiceInArea)
+
+	listGroup := v1Group.Group("/list")
+	listGroup.GET("/areas", checkToken(false), listAreas)
+	listGroup.GET("/services/in/:area", checkToken(false), listServicesInArea)
+	listGroup.GET("/services/with/:tag", checkToken(false), listServicesWithTag)
+	listGroup.GET("/tags", checkToken(false), listTags)
+
+	registerGroup := v1Group.Group("/register")
+	registerGroup.POST("/area/:area", checkToken(true), registerArea)
+	registerGroup.POST("/service/:service/in/:area", checkToken(true), registerServiceInArea)
+
+	deleteGroup := v1Group.Group("/delete")
+	deleteGroup.DELETE("/service/:service/in/:area", checkToken(true), deleteServiceInArea)
+	deleteGroup.DELETE("/area/:area", checkToken(true), deleteArea)
+	deleteGroup.DELETE("/tag/:tag", checkToken(true), deleteTag)
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.Port)
 
@@ -187,6 +197,26 @@ func deleteArea(c *gin.Context) {
 
 	_, err = dbClient.Area.Delete().
 		Where(area.Name(paramArea)).Exec(ctx)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "deleted",
+	})
+}
+
+func deleteTag(c *gin.Context) {
+	ctx := context.Background()
+
+	paramTag := c.Param("tag")
+
+	_, err := dbClient.Tag.Delete().
+		Where(tag.Name(paramTag)).Exec(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
