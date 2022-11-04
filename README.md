@@ -8,7 +8,8 @@
     * [Authentication & Authorization](#authentication--authorization)
     * [Register an Area](#register-an-area)
     * [Register a Service](#register-a-service)
-    * [Query a service](#query-a-service)
+    * [Query a Service](#query-a-service)
+    * [List Areas](#list-areas)
 
 <!-- vim-markdown-toc -->
 
@@ -129,7 +130,7 @@ $ curl -X POST -H "Bearer: <token>" --data @register-area.json localhost:9999/ap
 {"area":"<area-name>","service":{"id":42,"name":"<service-name>","description":"Service description","protocol":"Service protocol","host":"Service host","port":"Service port","edges":{}}}%
 ```
 
-### Query a service
+### Query a Service
 
 To query for a service the API endpoint `/api/v1/get/service/<service-name>/in/<area-name>` is available:
 
@@ -140,3 +141,50 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/get/service/<service-name>/in/
 
 {"id":42,"name":"<service-name>","description":"Service description","protocol":"Service protocol","host":"Service host","port":"Service port","edges":{}}%
 ```
+
+### List Areas
+
+To list all known areas the API endpoint `/api/v1/list/areas` is available:
+
+Example `cURL` call (prettyfied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/list/areas
+
+[
+  {
+    "id": 1,
+    "name": "foo",
+    "description": "foo description",
+    "edges": {
+      "services": [
+        {
+          "id": 1,
+          "name": "alice",
+          "description": "Alice description",
+          "protocol": "Alice protocol",
+          "host": "Alice host",
+          "port": "Alice port",
+          "edges": {}
+        },
+        {
+          "id": 2,
+          "name": "bob",
+          "description": "Bob description",
+          "protocol": "Bob protocol",
+          "host": "Bob host",
+          "port": "Bob port",
+          "edges": {}
+        }
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "name": "bar",
+    "description": "bar description",
+    "edges": {}
+  }
+]
+```
+
