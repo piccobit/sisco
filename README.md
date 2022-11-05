@@ -10,6 +10,10 @@
     * [Register a Service](#register-a-service)
     * [Query a Service](#query-a-service)
     * [List Areas](#list-areas)
+    * [List Services](#list-services)
+        * [List Services in Area](#list-services-in-area)
+        * [List Services with Tag](#list-services-with-tag)
+    * [List Tags](#list-tags)
 
 <!-- vim-markdown-toc -->
 
@@ -144,9 +148,9 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/get/service/<service-name>/in/
 
 ### List Areas
 
-To list all known areas the API endpoint `/api/v1/list/areas` is available:
+To list all known **areas** the API endpoint `/api/v1/list/areas` is available:
 
-Example `cURL` call (prettyfied output):
+Example `cURL` call (with prettyfied output):
 
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/areas
@@ -183,6 +187,152 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/areas
     "id": 2,
     "name": "bar",
     "description": "bar description",
+    "edges": {}
+  }
+]
+```
+
+### List Services
+
+#### List Services in Area
+
+To list all known **services** in a specifix **area** the API endpoint `/api/v1/list/services/in/<area-name>` is available:
+
+Example `cURL` call (with prettyfied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
+
+[
+  {
+    "id": 1,
+    "name": "alice",
+    "description": "Alice description",
+    "protocol": "Alice protocol",
+    "host": "Alice host",
+    "port": "Alice port",
+    "edges": {}
+  },
+  {
+    "id": 2,
+    "name": "bob",
+    "description": "Bob description",
+    "protocol": "Bob protocol",
+    "host": "Bob host",
+    "port": "Bob port",
+    "edges": {
+      "tags": [
+        {
+          "id": 1,
+          "name": "foo",
+          "edges": {}
+        },
+        {
+          "id": 2,
+          "name": "v1",
+          "edges": {}
+        }
+      ]
+    }
+  }
+]
+```
+
+#### List Services with Tag
+
+To list all known **services** with a specific **tag** the API endpoint `/api/v1/list/services/with/<tag-name>` is available:
+
+Example `cURL` call (with prettyfied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
+
+[
+  {
+    "id": 2,
+    "name": "bob",
+    "description": "Bob description",
+    "protocol": "Bob protocol",
+    "host": "Bob host",
+    "port": "Bob port",
+    "edges": {
+      "tags": [
+        {
+          "id": 1,
+          "name": "foobar",
+          "edges": {}
+        },
+        {
+          "id": 2,
+          "name": "v1",
+          "edges": {}
+        }
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "name": "charlie",
+    "description": "Charlie description",
+    "protocol": "Charlie protocol",
+    "host": "Charlie host",
+    "port": "Charlie port",
+    "edges": {
+      "tags": [
+        {
+          "id": 1,
+          "name": "barfoo",
+          "edges": {}
+        },
+        {
+          "id": 2,
+          "name": "v1",
+          "edges": {}
+        }
+      ]
+    }
+  }
+]
+```
+
+### List Tags
+
+To list all known **tags** the API endpoint `/api/v1/list/tags` is available:
+
+Example `cURL` call (with prettyfied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/list/tags
+
+[
+  {
+    "id": 1,
+    "name": "foo",
+    "edges": {}
+  },
+  {
+    "id": 2,
+    "name": "v1",
+    "edges": {}
+  },
+  {
+    "id": 4,
+    "name": "adas",
+    "edges": {}
+  },
+  {
+    "id": 5,
+    "name": "v2",
+    "edges": {}
+  },
+  {
+    "id": 6,
+    "name": "cpu",
+    "edges": {}
+  },
+  {
+    "id": 7,
+    "name": "k8s",
     "edges": {}
   }
 ]

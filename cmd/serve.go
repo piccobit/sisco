@@ -73,25 +73,25 @@ func serve() {
 	}
 
 	v1Group := router.Group("/api/v1")
-	v1Group.POST("/login", login)
+	v1Group.POST("/login", apiLogin)
 
 	getGroup := v1Group.Group("/get")
-	getGroup.GET("/service/:service/in/:area", checkToken(false), getServiceInArea)
+	getGroup.GET("/service/:service/in/:area", checkToken(false), apiGetServiceInArea)
 
 	listGroup := v1Group.Group("/list")
-	listGroup.GET("/areas", checkToken(false), listAreas)
-	listGroup.GET("/services/in/:area", checkToken(false), listServicesInArea)
-	listGroup.GET("/services/with/:tag", checkToken(false), listServicesWithTag)
-	listGroup.GET("/tags", checkToken(false), listTags)
+	listGroup.GET("/areas", checkToken(false), apiListAreas)
+	listGroup.GET("/services/in/:area", checkToken(false), apiListServicesInArea)
+	listGroup.GET("/services/with/:tag", checkToken(false), apiListServicesWithTag)
+	listGroup.GET("/tags", checkToken(false), apiListTags)
 
 	registerGroup := v1Group.Group("/register")
-	registerGroup.POST("/area/:area", checkToken(true), registerArea)
-	registerGroup.POST("/service/:service/in/:area", checkToken(true), registerServiceInArea)
+	registerGroup.POST("/area/:area", checkToken(true), apiRegisterArea)
+	registerGroup.POST("/service/:service/in/:area", checkToken(true), apiRegisterServiceInArea)
 
 	deleteGroup := v1Group.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", checkToken(true), deleteServiceInArea)
-	deleteGroup.DELETE("/area/:area", checkToken(true), deleteArea)
-	deleteGroup.DELETE("/tag/:tag", checkToken(true), deleteTag)
+	deleteGroup.DELETE("/service/:service/in/:area", checkToken(true), apiDeleteServiceInArea)
+	deleteGroup.DELETE("/area/:area", checkToken(true), apiDeleteArea)
+	deleteGroup.DELETE("/tag/:tag", checkToken(true), apiDeleteTag)
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.Port)
 
@@ -101,10 +101,10 @@ func serve() {
 	}
 }
 
-func listAreas(c *gin.Context) {
+func apiListAreas(c *gin.Context) {
 	ctx := context.Background()
 
-	a, err := dbClient.Area.Query().WithServices().All(ctx)
+	a, err := dbClient.Area.Query().WithServices().Order(ent.Asc(area.FieldID)).Order(ent.Asc(service.FieldID)).All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -113,13 +113,17 @@ func listAreas(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, a)
+	if pretty {
+		c.IndentedJSON(http.StatusOK, a)
+	} else {
+		c.JSON(http.StatusOK, a)
+	}
 }
 
-func listTags(c *gin.Context) {
+func apiListTags(c *gin.Context) {
 	ctx := context.Background()
 
-	t, err := dbClient.Tag.Query().WithService().All(ctx)
+	t, err := dbClient.Tag.Query().Order(ent.Asc(tag.FieldID)).All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -128,10 +132,14 @@ func listTags(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, t)
+	if pretty {
+		c.IndentedJSON(http.StatusOK, t)
+	} else {
+		c.JSON(http.StatusOK, t)
+	}
 }
 
-func getServiceInArea(c *gin.Context) {
+func apiGetServiceInArea(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
@@ -149,10 +157,14 @@ func getServiceInArea(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, s)
+	if pretty {
+		c.IndentedJSON(http.StatusOK, s)
+	} else {
+		c.JSON(http.StatusOK, s)
+	}
 }
 
-func deleteServiceInArea(c *gin.Context) {
+func apiDeleteServiceInArea(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
@@ -173,7 +185,7 @@ func deleteServiceInArea(c *gin.Context) {
 	})
 }
 
-func deleteArea(c *gin.Context) {
+func apiDeleteArea(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
@@ -210,7 +222,7 @@ func deleteArea(c *gin.Context) {
 	})
 }
 
-func deleteTag(c *gin.Context) {
+func apiDeleteTag(c *gin.Context) {
 	ctx := context.Background()
 
 	paramTag := c.Param("tag")
@@ -230,12 +242,16 @@ func deleteTag(c *gin.Context) {
 	})
 }
 
-func listServicesInArea(c *gin.Context) {
+func apiListServicesInArea(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
 
-	s, err := dbClient.Service.Query().Where(service.HasAreaWith(area.Name(paramArea))).WithTags().All(ctx)
+	s, err := dbClient.Service.Query().
+		Where(service.HasAreaWith(area.Name(paramArea))).
+		WithTags().
+		Order(ent.Asc(service.FieldID)).
+		All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -244,15 +260,23 @@ func listServicesInArea(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, s)
+	if pretty {
+		c.IndentedJSON(http.StatusOK, s)
+	} else {
+		c.JSON(http.StatusOK, s)
+	}
 }
 
-func listServicesWithTag(c *gin.Context) {
+func apiListServicesWithTag(c *gin.Context) {
 	ctx := context.Background()
 
 	paramTag := c.Param("tag")
 
-	s, err := dbClient.Service.Query().Where(service.HasTagsWith(tag.Name(paramTag))).WithTags().All(ctx)
+	s, err := dbClient.Service.Query().
+		Where(service.HasTagsWith(tag.Name(paramTag))).
+		Order(ent.Asc(service.FieldID)).
+		WithTags().
+		All(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -261,7 +285,11 @@ func listServicesWithTag(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, s)
+	if pretty {
+		c.IndentedJSON(http.StatusOK, s)
+	} else {
+		c.JSON(http.StatusOK, s)
+	}
 }
 
 type RegisterService struct {
@@ -272,7 +300,7 @@ type RegisterService struct {
 	Tags        []string `yaml:"tags,omitempty"`
 }
 
-func registerServiceInArea(c *gin.Context) {
+func apiRegisterServiceInArea(c *gin.Context) {
 	var err error
 	var rs RegisterService
 
@@ -344,17 +372,24 @@ func registerServiceInArea(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"area":    areaParam,
-		"service": s,
-	})
+	if pretty {
+		c.IndentedJSON(http.StatusOK, gin.H{
+			"area":    areaParam,
+			"service": s,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"area":    areaParam,
+			"service": s,
+		})
+	}
 }
 
 type RegisterArea struct {
 	Description string `yaml:"description"`
 }
 
-func registerArea(c *gin.Context) {
+func apiRegisterArea(c *gin.Context) {
 	var ra RegisterArea
 
 	ctx := context.Background()
@@ -392,7 +427,7 @@ type Login struct {
 	Password string `yaml:"password"`
 }
 
-func login(c *gin.Context) {
+func apiLogin(c *gin.Context) {
 	var l Login
 
 	ctx := context.Background()
