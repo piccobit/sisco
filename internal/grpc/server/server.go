@@ -11,6 +11,7 @@ import (
 
 type server struct {
 	pb.UnimplementedLoginServer
+	pb.UnimplementedRegisterAreaServer
 }
 
 var (
