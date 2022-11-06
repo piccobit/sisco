@@ -22,8 +22,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx"
 	"github.com/spf13/cobra"
-	"sisco/cfg"
 	entMigrate "sisco/ent/migrate"
+	"sisco/internal/cfg"
 )
 
 var (

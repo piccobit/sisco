@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "github.com/piccobit/sisco/pb";
+
+package pb;
+
+// The 'Login' service definition.
+service Login {
+  // Sends a login request.
+  rpc Login (LoginRequest) returns (LoginReply) {}
+}
+
+// The request message containing the user's name and password.
+message LoginRequest {
+  string user = 1;
+  string password = 2;
+}
+
+// The response message containing the bearer token.
+message LoginReply {
+  string token = 1;
+  bool isAdminToken = 2;
+}
+
+// The 'RegisterArea' service definition.
+service RegisterArea {
+  // Sends a RegisterArea request.
+  rpc Login (RegisterAreaRequest) returns (RegisterAreaReply) {}
+}
+
+// The request message containing the user's name and password.
+message RegisterAreaRequest {
+  string bearer = 1;
+  string area = 2;
+  string description = 3;
+}
+
+// The response message containing the bearer token.
+message RegisterAreaReply {
+  bool success = 1;
+}

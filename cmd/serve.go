@@ -2,24 +2,27 @@ package cmd
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-ldap/ldap"
 	"github.com/spf13/cobra"
-	"sisco/cfg"
+	"google.golang.org/grpc"
 	"sisco/ent"
 	"sisco/ent/area"
 	"sisco/ent/service"
 	"sisco/ent/tag"
-	"sisco/ent/token"
+	"sisco/internal/cfg"
+	"sisco/internal/db"
+	"sisco/internal/grpc/server"
 )
+
+// type gRPCServer struct
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
@@ -36,31 +39,17 @@ var serveCmd = &cobra.Command{
 
 var (
 	dbClient *ent.Client
-	ldapConn *ldap.Conn
+	dbConn   *db.Client
 )
 
 func serve() {
 	var err error
 
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.Config.DBUser,
-		cfg.Config.DBPassword,
-		cfg.Config.DBHost,
-		cfg.Config.DBPort,
-		cfg.Config.DBName,
-		cfg.Config.DBSSLMode,
-	)
-
-	dbClient, err = ent.Open("postgres", dbURL)
+	dbConn, err = db.New()
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
-	defer func(dbClient *ent.Client) {
-		err := dbClient.Close()
-		if err != nil {
-			log.Fatalf("failed closing postgres DB connection: %v", err)
-		}
-	}(dbClient)
+	defer dbConn.Close()
 
 	if cfg.Config.GinReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
@@ -93,12 +82,65 @@ func serve() {
 	deleteGroup.DELETE("/area/:area", checkToken(true), apiDeleteArea)
 	deleteGroup.DELETE("/tag/:tag", checkToken(true), apiDeleteTag)
 
+	grpcListenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
+
+	grpcSrv := grpc.NewServer()
+
+	go grpcServer(grpcSrv, grpcListenAddr)
+
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.Port)
 
-	err = router.Run(listenAddr)
-	if err != nil {
+	httpSrv := &http.Server{
+		Addr:    listenAddr,
+		Handler: router,
+	}
+
+	go httpServer(httpSrv)
+
+	// Wait for interrupt signal to gracefully shut down the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall, but SIGKILL can't be caught, so we don't need adding it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+
+	log.Println("Shutdown servers ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	log.Println("HTTP server is shutting down ...")
+
+	if err := httpSrv.Shutdown(ctx); err != nil {
+		log.Fatalf("server shutdown failed: %v", err)
+	}
+
+	log.Println("gRPC server is shutting down ...")
+
+	grpcSrv.GracefulStop()
+
+	// Catching ctx.Done(). Timeout of 5 seconds.
+	select {
+	case <-ctx.Done():
+		log.Println("Exiting ...")
+	}
+}
+
+func httpServer(srv *http.Server) {
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("failed listening: %v", err)
 	}
+
+	log.Println("HTTP server shut down")
+}
+
+func grpcServer(srv *grpc.Server, listenAddr string) {
+	server.Run(srv, listenAddr)
+
+	log.Println("gRPC server shut down")
 }
 
 func apiListAreas(c *gin.Context) {
@@ -405,10 +447,7 @@ func apiRegisterArea(c *gin.Context) {
 		return
 	}
 
-	a, err := dbClient.Area.Create().
-		SetName(areaParam).
-		SetDescription(ra.Description).
-		Save(ctx)
+	err = dbConn.CreeateArea(ctx, areaParam, ra.Description)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -418,7 +457,7 @@ func apiRegisterArea(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"area": a,
+		"status": "ok",
 	})
 }
 
@@ -434,125 +473,26 @@ func apiLogin(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&l)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
 
 		return
 	}
 
-	authToken := generateSecureToken(32)
+	authToken, isAdminToken, err := dbConn.GetSecretToken(ctx, l.User, l.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
 
-	t, err := dbClient.Token.Query().Where(token.User(l.User)).Only(ctx)
-	if t == nil {
-		if ldapConn == nil {
-			ldapConn, err = ldap.DialURL(cfg.Config.LdapURL)
-			if err != nil {
-				c.JSON(http.StatusNotFound, gin.H{
-					"error": err.Error(),
-				})
-
-				return
-			}
-			defer ldapConn.Close()
-		}
-
-		err = ldapConn.Bind(cfg.Config.LdapBindDN, cfg.Config.LdapBindPassword)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": err.Error(),
-			})
-
-			return
-		}
-
-		// We check first if this is an 'admin' token.
-
-		isAdminToken := false
-
-		filter := replace(cfg.Config.LdapFilterAdminsDN, "{user}", ldap.EscapeFilter(l.User))
-
-		searchReq := ldap.NewSearchRequest(cfg.Config.LdapBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, filter, []string{"dn"}, []ldap.Control{})
-
-		result, err := ldapConn.Search(searchReq)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": err.Error(),
-			})
-
-			return
-		}
-
-		if len(result.Entries) != 0 {
-			isAdminToken = true
-		} else {
-			filter = replace(cfg.Config.LdapFilterUsersDN, "{user}", ldap.EscapeFilter(l.User))
-
-			searchReq = ldap.NewSearchRequest(cfg.Config.LdapBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, filter, []string{"dn"}, []ldap.Control{})
-
-			result, err = ldapConn.Search(searchReq)
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"error": err.Error(),
-				})
-
-				return
-			}
-
-			if len(result.Entries) == 0 {
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"error": "user not found",
-				})
-
-				return
-			}
-		}
-
-		err = ldapConn.Bind(result.Entries[0].DN, l.Password)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": err.Error(),
-			})
-
-			return
-		}
-
-		_, err = dbClient.Token.Create().
-			SetUser(l.User).
-			SetToken(authToken).
-			SetAdmin(isAdminToken).
-			Save(ctx)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
-
-			return
-		}
-	} else {
-		_, err = dbClient.Token.Update().Where(token.User(l.User)).SetCreated(time.Now()).Save(ctx)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
-
-			return
-		}
-
-		authToken = t.Token
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token": authToken,
+		"token":        authToken,
+		"isAdminToken": isAdminToken,
 	})
-}
-
-func generateSecureToken(length int) string {
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-	return hex.EncodeToString(b)
 }
 
 func checkToken(isAdminToken bool) gin.HandlerFunc {
@@ -564,35 +504,16 @@ func checkToken(isAdminToken bool) gin.HandlerFunc {
 		if len(bearer) == 0 {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		} else {
-			t, err := dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
+			tokenIsValid, err := dbConn.CheckToken(ctx, bearer, isAdminToken)
 			if err != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
-				if int(time.Now().Sub(t.Created).Seconds()) > cfg.Config.TokenValidInSeconds {
-					c.AbortWithStatus(http.StatusUnauthorized)
+				if tokenIsValid {
+					c.Next()
 				} else {
-					if isAdminToken {
-						if t.Admin {
-							c.Next()
-						} else {
-							c.AbortWithStatus(http.StatusUnauthorized)
-						}
-					} else {
-						c.Next()
-					}
+					c.AbortWithStatus(http.StatusUnauthorized)
 				}
 			}
 		}
 	}
-}
-
-func replace(haystack string, needle string, replacement string) string {
-	res := strings.Replace(
-		haystack,
-		needle,
-		replacement,
-		-1,
-	)
-
-	return res
 }

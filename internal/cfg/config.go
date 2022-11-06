@@ -1,7 +1,6 @@
 package cfg
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -11,12 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// configuration contains the configuration of the app.
+// Configuration contains the Configuration of the app.
 // Please adjust it to your own needs!
-type configuration struct {
+type Configuration struct {
 	Debug               bool     `yaml:"debug,omitempty"`
 	GinReleaseMode      bool     `yaml:"ginReleaseMode,omitempty"`
 	Port                int      `yaml:"port"`
+	GRPCPort            int      `yaml:"gRPCPort"`
 	DBType              string   `yaml:"dbType"`
 	DBHost              string   `yaml:"dbHost"`
 	DBPort              int      `yaml:"dbPort"`
@@ -35,9 +35,9 @@ type configuration struct {
 }
 
 var (
-	Config     configuration
-	configName = ".sisco" // configName contains the name (without extension) of the configuration file.
-	configType = "yaml"   // configType defines the type of the configuration file.
+	Config     Configuration
+	configName = ".sisco" // configName contains the name (without extension) of the Configuration file.
+	configType = "yaml"   // configType defines the type of the Configuration file.
 	configFile string
 )
 
@@ -83,7 +83,7 @@ func initConfig() {
 	}
 
 	if viper.GetBool("debug") {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Printf("Using config file: %s", viper.ConfigFileUsed())
 	}
 
 	err := viper.Unmarshal(&Config)
