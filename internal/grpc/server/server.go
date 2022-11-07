@@ -12,6 +12,7 @@ import (
 type server struct {
 	pb.UnimplementedLoginServer
 	pb.UnimplementedRegisterAreaServer
+	pb.UnimplementedDeleteAreaServer
 }
 
 var (
@@ -34,6 +35,8 @@ func Run(s *grpc.Server, listenAddr string) {
 	}
 
 	pb.RegisterLoginServer(s, &server{})
+	pb.RegisterRegisterAreaServer(s, &server{})
+	pb.RegisterDeleteAreaServer(s, &server{})
 
 	log.Printf("gRPC server listening at %v", lis.Addr())
 

@@ -111,7 +111,7 @@ var Login_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RegisterAreaClient interface {
 	// Sends a RegisterArea request.
-	Login(ctx context.Context, in *RegisterAreaRequest, opts ...grpc.CallOption) (*RegisterAreaReply, error)
+	RegisterArea(ctx context.Context, in *RegisterAreaRequest, opts ...grpc.CallOption) (*RegisterAreaReply, error)
 }
 
 type registerAreaClient struct {
@@ -122,9 +122,9 @@ func NewRegisterAreaClient(cc grpc.ClientConnInterface) RegisterAreaClient {
 	return &registerAreaClient{cc}
 }
 
-func (c *registerAreaClient) Login(ctx context.Context, in *RegisterAreaRequest, opts ...grpc.CallOption) (*RegisterAreaReply, error) {
+func (c *registerAreaClient) RegisterArea(ctx context.Context, in *RegisterAreaRequest, opts ...grpc.CallOption) (*RegisterAreaReply, error) {
 	out := new(RegisterAreaReply)
-	err := c.cc.Invoke(ctx, "/pb.RegisterArea/Login", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.RegisterArea/RegisterArea", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (c *registerAreaClient) Login(ctx context.Context, in *RegisterAreaRequest,
 // for forward compatibility
 type RegisterAreaServer interface {
 	// Sends a RegisterArea request.
-	Login(context.Context, *RegisterAreaRequest) (*RegisterAreaReply, error)
+	RegisterArea(context.Context, *RegisterAreaRequest) (*RegisterAreaReply, error)
 	mustEmbedUnimplementedRegisterAreaServer()
 }
 
@@ -144,8 +144,8 @@ type RegisterAreaServer interface {
 type UnimplementedRegisterAreaServer struct {
 }
 
-func (UnimplementedRegisterAreaServer) Login(context.Context, *RegisterAreaRequest) (*RegisterAreaReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+func (UnimplementedRegisterAreaServer) RegisterArea(context.Context, *RegisterAreaRequest) (*RegisterAreaReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterArea not implemented")
 }
 func (UnimplementedRegisterAreaServer) mustEmbedUnimplementedRegisterAreaServer() {}
 
@@ -160,20 +160,20 @@ func RegisterRegisterAreaServer(s grpc.ServiceRegistrar, srv RegisterAreaServer)
 	s.RegisterService(&RegisterArea_ServiceDesc, srv)
 }
 
-func _RegisterArea_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RegisterArea_RegisterArea_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterAreaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RegisterAreaServer).Login(ctx, in)
+		return srv.(RegisterAreaServer).RegisterArea(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.RegisterArea/Login",
+		FullMethod: "/pb.RegisterArea/RegisterArea",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RegisterAreaServer).Login(ctx, req.(*RegisterAreaRequest))
+		return srv.(RegisterAreaServer).RegisterArea(ctx, req.(*RegisterAreaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -186,8 +186,96 @@ var RegisterArea_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*RegisterAreaServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Login",
-			Handler:    _RegisterArea_Login_Handler,
+			MethodName: "RegisterArea",
+			Handler:    _RegisterArea_RegisterArea_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pb/pb.proto",
+}
+
+// DeleteAreaClient is the client API for DeleteArea service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type DeleteAreaClient interface {
+	// Sends a DeleteArea request.
+	DeleteArea(ctx context.Context, in *DeleteAreaRequest, opts ...grpc.CallOption) (*DeleteAreaReply, error)
+}
+
+type deleteAreaClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDeleteAreaClient(cc grpc.ClientConnInterface) DeleteAreaClient {
+	return &deleteAreaClient{cc}
+}
+
+func (c *deleteAreaClient) DeleteArea(ctx context.Context, in *DeleteAreaRequest, opts ...grpc.CallOption) (*DeleteAreaReply, error) {
+	out := new(DeleteAreaReply)
+	err := c.cc.Invoke(ctx, "/pb.DeleteArea/DeleteArea", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DeleteAreaServer is the server API for DeleteArea service.
+// All implementations must embed UnimplementedDeleteAreaServer
+// for forward compatibility
+type DeleteAreaServer interface {
+	// Sends a DeleteArea request.
+	DeleteArea(context.Context, *DeleteAreaRequest) (*DeleteAreaReply, error)
+	mustEmbedUnimplementedDeleteAreaServer()
+}
+
+// UnimplementedDeleteAreaServer must be embedded to have forward compatible implementations.
+type UnimplementedDeleteAreaServer struct {
+}
+
+func (UnimplementedDeleteAreaServer) DeleteArea(context.Context, *DeleteAreaRequest) (*DeleteAreaReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteArea not implemented")
+}
+func (UnimplementedDeleteAreaServer) mustEmbedUnimplementedDeleteAreaServer() {}
+
+// UnsafeDeleteAreaServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DeleteAreaServer will
+// result in compilation errors.
+type UnsafeDeleteAreaServer interface {
+	mustEmbedUnimplementedDeleteAreaServer()
+}
+
+func RegisterDeleteAreaServer(s grpc.ServiceRegistrar, srv DeleteAreaServer) {
+	s.RegisterService(&DeleteArea_ServiceDesc, srv)
+}
+
+func _DeleteArea_DeleteArea_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAreaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeleteAreaServer).DeleteArea(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.DeleteArea/DeleteArea",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeleteAreaServer).DeleteArea(ctx, req.(*DeleteAreaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// DeleteArea_ServiceDesc is the grpc.ServiceDesc for DeleteArea service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var DeleteArea_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.DeleteArea",
+	HandlerType: (*DeleteAreaServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "DeleteArea",
+			Handler:    _DeleteArea_DeleteArea_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

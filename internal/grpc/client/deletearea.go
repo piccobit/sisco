@@ -2,7 +2,8 @@ package client
 
 import (
 	"context"
-	"log"
+	"errors"
+	"fmt"
 	"time"
 
 	"google.golang.org/grpc"
@@ -10,10 +11,10 @@ import (
 	"sisco/pb"
 )
 
-func Login(listenAddr string, user string, password string) (string, bool, error) {
+func DeleteArea(listenAddr string, bearer string, area string) error {
 	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		return errors.New(fmt.Sprintf("did not connect: %v", err))
 	}
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
@@ -22,19 +23,19 @@ func Login(listenAddr string, user string, password string) (string, bool, error
 		}
 	}(conn)
 
-	c := pb.NewLoginClient(conn)
+	c := pb.NewDeleteAreaClient(conn)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := c.Login(ctx, &pb.LoginRequest{
-		User:     user,
-		Password: password,
+	_, err = c.DeleteArea(ctx, &pb.DeleteAreaRequest{
+		Bearer: bearer,
+		Area:   area,
 	})
 	if err != nil {
-		log.Fatalf("login failed: %s", err)
+		return errors.New(fmt.Sprintf("delete area failed: %s", err))
 	}
 
-	return r.GetToken(), r.GetIsAdminToken(), err
+	return err
 }

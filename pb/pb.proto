@@ -25,17 +25,32 @@ message LoginReply {
 // The 'RegisterArea' service definition.
 service RegisterArea {
   // Sends a RegisterArea request.
-  rpc Login (RegisterAreaRequest) returns (RegisterAreaReply) {}
+  rpc RegisterArea (RegisterAreaRequest) returns (RegisterAreaReply) {}
 }
 
-// The request message containing the user's name and password.
+// The request message containing the bearer token, area and description.
 message RegisterAreaRequest {
   string bearer = 1;
   string area = 2;
   string description = 3;
 }
 
-// The response message containing the bearer token.
+// The response message.
 message RegisterAreaReply {
-  bool success = 1;
+}
+
+// The 'DeleteArea' service definition.
+service DeleteArea {
+  // Sends a DeleteArea request.
+  rpc DeleteArea (DeleteAreaRequest) returns (DeleteAreaReply) {}
+}
+
+// The request message containing the bearer and area name.
+message DeleteAreaRequest {
+  string bearer = 1;
+  string area = 2;
+}
+
+// The response message.
+message DeleteAreaReply {
 }

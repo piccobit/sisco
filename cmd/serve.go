@@ -64,23 +64,25 @@ func serve() {
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
 
-	getGroup := v1Group.Group("/get")
-	getGroup.GET("/service/:service/in/:area", checkToken(false), apiGetServiceInArea)
+	getGroup := v1Group.Group("/get", checkToken(false))
+	getGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
 
-	listGroup := v1Group.Group("/list")
-	listGroup.GET("/areas", checkToken(false), apiListAreas)
-	listGroup.GET("/services/in/:area", checkToken(false), apiListServicesInArea)
-	listGroup.GET("/services/with/:tag", checkToken(false), apiListServicesWithTag)
-	listGroup.GET("/tags", checkToken(false), apiListTags)
+	listGroup := v1Group.Group("/list", checkToken(false))
+	listGroup.GET("/areas", apiListAreas)
+	listGroup.GET("/services/in/:area", apiListServicesInArea)
+	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
+	listGroup.GET("/tags", apiListTags)
 
-	registerGroup := v1Group.Group("/register")
-	registerGroup.POST("/area/:area", checkToken(true), apiRegisterArea)
-	registerGroup.POST("/service/:service/in/:area", checkToken(true), apiRegisterServiceInArea)
+	adminGroup := v1Group.Group("/admin", checkToken(true))
 
-	deleteGroup := v1Group.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", checkToken(true), apiDeleteServiceInArea)
-	deleteGroup.DELETE("/area/:area", checkToken(true), apiDeleteArea)
-	deleteGroup.DELETE("/tag/:tag", checkToken(true), apiDeleteTag)
+	registerGroup := adminGroup.Group("/register")
+	registerGroup.POST("/area/:area", apiRegisterArea)
+	registerGroup.POST("/service/:service/in/:area", apiRegisterServiceInArea)
+
+	deleteGroup := adminGroup.Group("/delete")
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteServiceInArea)
+	deleteGroup.DELETE("/area/:area", apiDeleteArea)
+	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
 
 	grpcListenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
@@ -146,7 +148,7 @@ func grpcServer(srv *grpc.Server, listenAddr string) {
 func apiListAreas(c *gin.Context) {
 	ctx := context.Background()
 
-	a, err := dbClient.Area.Query().WithServices().Order(ent.Asc(area.FieldID)).Order(ent.Asc(service.FieldID)).All(ctx)
+	a, err := dbConn.QueryAreas(ctx)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -232,30 +234,12 @@ func apiDeleteArea(c *gin.Context) {
 
 	paramArea := c.Param("area")
 
-	numServices, err := dbClient.Service.Query().Where(service.HasAreaWith(area.Name(paramArea))).Count(ctx)
+	err := dbConn.DeleteArea(ctx, paramArea)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusNotModified, gin.H{
+			"status": "NOT deleted",
+			"error":  err.Error(),
 		})
-
-		return
-	}
-
-	if numServices > 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": fmt.Sprintf("area '%s' is not empty", paramArea),
-		})
-
-		return
-	}
-
-	_, err = dbClient.Area.Delete().
-		Where(area.Name(paramArea)).Exec(ctx)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-
 		return
 	}
 
@@ -447,7 +431,7 @@ func apiRegisterArea(c *gin.Context) {
 		return
 	}
 
-	err = dbConn.CreeateArea(ctx, areaParam, ra.Description)
+	err = dbConn.CreateArea(ctx, areaParam, ra.Description)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
