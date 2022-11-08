@@ -39,6 +39,28 @@ message RegisterAreaRequest {
 message RegisterAreaReply {
 }
 
+// The 'RegisterService' service definition.
+service RegisterService {
+  // Sends a RegisterService request.
+  rpc RegisterService (RegisterServiceRequest) returns (RegisterServiceReply) {}
+}
+
+// The request message containing the bearer token, area and description.
+message RegisterServiceRequest {
+  string bearer = 1;
+  string service = 2;
+  string area = 3;
+  string description = 4;
+  string protocol = 5;
+  string host = 6;
+  string port = 7;
+  repeated string tags = 8;
+}
+
+// The response message.
+message RegisterServiceReply {
+}
+
 // The 'DeleteArea' service definition.
 service DeleteArea {
   // Sends a DeleteArea request.
@@ -53,4 +75,21 @@ message DeleteAreaRequest {
 
 // The response message.
 message DeleteAreaReply {
+}
+
+// The 'DeleteService' service definition.
+service DeleteService {
+  // Sends a DeleteService request.
+  rpc DeleteService (DeleteServiceRequest) returns (DeleteServiceReply) {}
+}
+
+// The request message containing the bearer and area name.
+message DeleteServiceRequest {
+  string bearer = 1;
+  string service = 2;
+  string area = 3;
+}
+
+// The response message.
+message DeleteServiceReply {
 }

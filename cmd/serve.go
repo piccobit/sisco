@@ -214,8 +214,7 @@ func apiDeleteServiceInArea(c *gin.Context) {
 	paramArea := c.Param("area")
 	paramService := c.Param("service")
 
-	_, err := dbClient.Service.Delete().
-		Where(service.And(service.Name(paramService), service.HasAreaWith(area.Name(paramArea)))).Exec(ctx)
+	err := dbConn.DeleteService(ctx, paramService, paramArea)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -273,11 +272,7 @@ func apiListServicesInArea(c *gin.Context) {
 
 	paramArea := c.Param("area")
 
-	s, err := dbClient.Service.Query().
-		Where(service.HasAreaWith(area.Name(paramArea))).
-		WithTags().
-		Order(ent.Asc(service.FieldID)).
-		All(ctx)
+	s, err := dbConn.QueryServicesInArea(ctx, paramArea)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -333,17 +328,6 @@ func apiRegisterServiceInArea(c *gin.Context) {
 	ctx := context.Background()
 
 	areaParam := c.Param("area")
-
-	var numAreas int
-
-	if numAreas, err = dbClient.Area.Query().Where(area.Name(areaParam)).Count(ctx); numAreas == 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": fmt.Sprintf("area '%s' does not exist, please register it first", areaParam),
-		})
-
-		return
-	}
-
 	serviceParam := c.Param("service")
 
 	err = c.ShouldBindJSON(&rs)
@@ -355,32 +339,7 @@ func apiRegisterServiceInArea(c *gin.Context) {
 		return
 	}
 
-	var tags []*ent.Tag
-
-	for _, tagName := range rs.Tags {
-		t, _ := dbClient.Tag.Query().Where(tag.Name(tagName)).Only(ctx)
-		if t == nil {
-			t, err = dbClient.Tag.Create().SetName(tagName).Save(ctx)
-			if err != nil {
-				c.JSON(http.StatusNotFound, gin.H{
-					"error": err.Error(),
-				})
-
-				return
-			}
-		}
-
-		tags = append(tags, t)
-	}
-
-	s, err := dbClient.Service.Create().
-		SetName(serviceParam).
-		SetDescription(rs.Description).
-		SetProtocol(rs.Protocol).
-		SetHost(rs.Host).
-		SetPort(rs.Port).
-		AddTags(tags...).
-		Save(ctx)
+	err = dbConn.CreateService(ctx, serviceParam, areaParam, rs.Description, rs.Protocol, rs.Host, rs.Port, rs.Tags)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -389,26 +348,9 @@ func apiRegisterServiceInArea(c *gin.Context) {
 		return
 	}
 
-	_, err = dbClient.Area.Update().Where(area.Name(areaParam)).AddServices(s).Save(ctx)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-
-		return
-	}
-
-	if pretty {
-		c.IndentedJSON(http.StatusOK, gin.H{
-			"area":    areaParam,
-			"service": s,
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"area":    areaParam,
-			"service": s,
-		})
-	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+	})
 }
 
 type RegisterArea struct {
