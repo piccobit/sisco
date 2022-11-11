@@ -10,6 +10,15 @@ import (
 	"sisco/ent/tag"
 )
 
+func (c *Client) CreateArea(ctx context.Context, area string, description string) error {
+	_, err := c.dbClient.Area.Create().
+		SetName(area).
+		SetDescription(description).
+		Save(ctx)
+
+	return err
+}
+
 func (c *Client) CreateService(ctx context.Context, serviceName string, areaName string, description string, protocol string, host string, port string, serviceTags []string) error {
 	if ok, err := c.dbClient.Area.Query().Where(area.Name(areaName)).Exist(ctx); !ok || err != nil {
 		return errors.New(fmt.Sprintf("area %s not found", areaName))
