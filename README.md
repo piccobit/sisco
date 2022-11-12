@@ -14,9 +14,9 @@
         * [List Services in Area](#list-services-in-area)
         * [List Services with Tag](#list-services-with-tag)
     * [List Tags](#list-tags)
-* [Delete Area](#delete-area)
-* [Delete Service](#delete-service)
-* [Delete Tag](#delete-tag)
+    * [Delete Area](#delete-area)
+    * [Delete Service](#delete-service)
+    * [Delete Tag](#delete-tag)
 
 <!-- vim-markdown-toc -->
 
@@ -342,7 +342,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/tags
 ]
 ```
 
-## Delete Area
+### Delete Area
 
 To delete an area the REST API endpoint `/api/v1/admin/delete/area/<area>` is available:
 
@@ -354,7 +354,7 @@ Example `cURL` call (with prettied output):
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/area/foobar
 ```
 
-## Delete Service
+### Delete Service
 
 To delete a service the REST API endpoint `/api/v1/admin/delete/service/<service>/in/<area>` is available:
 
@@ -364,7 +364,7 @@ Example `cURL` call (with prettied output):
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/service/<service>/in/<area>
 ```
 
-## Delete Tag
+### Delete Tag
 
 To delete a tag the REST API endpoint `/api/v1/admin/delete/tag/<tag>` is available:
 
@@ -373,5 +373,4 @@ Example `cURL` call (with prettied output):
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/tag/<tag>
 ```
-
 
