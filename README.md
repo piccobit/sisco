@@ -4,7 +4,7 @@
 * [Configuration](#configuration)
 * [Database Setup](#database-setup)
 * [Areas, Services & Tags](#areas-services--tags)
-* [API Endpoints](#api-endpoints)
+* [REST API Endpoints](#api-endpoints)
     * [Authentication & Authorization](#authentication--authorization)
     * [Register an Area](#register-an-area)
     * [Register a Service](#register-a-service)
@@ -17,7 +17,7 @@
 
 <!-- vim-markdown-toc -->
 
-`sisco` is a lightweight tool to provide the discovery of services in a network. Using the REST API, one can register and query services. Services can be also update and deleted. Access to the REST API requires an authentication. Normal users are only allowed to query services, admin users can also add, modify and delete them. LDAP or Active Directory users and groups are used to get the credentials. The service data is stored in a database, which might be either a Postgres or a MySQL
+`sisco` is a lightweight server to provide the discovery of services in a network. Using the REST API or gRPC interface, one can register and query services. Services can be also update and deleted. Access to the REST API or gRPC interface requires an authentication. Normal users are only allowed to query services, admin users can also add, modify and delete them. LDAP or Active Directory users and groups are used to get the credentials. The service data is stored in a database, which might be either a Postgres or a MySQL
 database.
 
 ## Configuration
@@ -30,6 +30,7 @@ Below listed is a sample configuration file:
 debug: true
 ginReleaseMode: false
 port: 9999
+gRPCPort: 8888
 dbType: "postgres"
 dbHost: "localhost"
 dbPort: 5432
@@ -63,13 +64,13 @@ Depending on your configured database type `sisco` is applying the database migr
 
 **Areas** allow you to define multiple **services** with the same name. Think of it as some sort of *prefix*. **Tags** can be added to **services**, allowing you to group them for example by functionality.
 
-## API Endpoints
+## REST API Endpoints
 
-All API endpoints are currently starting with `/api/v1`.
+All REST API endpoints are currently starting with `/api/v1`.
 
 ### Authentication & Authorization
 
-Authentication and authorization is done by posting the following JSON data to the API endpoint `/api/v1/login`:
+Authentication and authorization is done by posting the following JSON data to the REST API endpoint `/api/v1/login`:
 
 Example `login.json`:
 
@@ -88,11 +89,11 @@ $ curl -X POST --data @login.json localhost:9999/api/v1/login
 {"token":"5bc9b49d41ef3477848fd56f8d6eac8e507331898de5fe14ff4bcd86381183d8"}
 ```
 
-The API call is answered with a bearer token which you have to use in any other call to the `sisco` API. Depending on your group membership this might grant you also administrative access to the API.
+The REST API call is answered with a bearer token which you have to use in any other call to the `sisco` REST API. Depending on your group membership this might grant you also administrative access to the REST API.
 
 ### Register an Area
 
-To register a new **area** the following JSON data needs to be posted to the API endpoint `/api/v1/register/area/<area-name>`:
+To register a new **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/register/area/<area-name>`:
 
 Example `register-area.json` file:
 
@@ -112,7 +113,7 @@ $ curl -X POST -H "Bearer: <token>" --data @register-area.json localhost:9999/ap
 
 ### Register a Service
 
-To register a new **service** in an already existin **area** the following JSON data needs to be posted to the API endpoint `/api/v1/register/service/<service-name>/in/<area-name>`:
+To register a new **service** in an already existin **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/register/service/<service-name>/in/<area-name>`:
 
 Example `register-service.json` file:
 
@@ -136,7 +137,7 @@ $ curl -X POST -H "Bearer: <token>" --data @register-area.json localhost:9999/ap
 
 ### Query a Service
 
-To query for a service the API endpoint `/api/v1/get/service/<service-name>/in/<area-name>` is available:
+To query for a service the REST API endpoint `/api/v1/get/service/<service-name>/in/<area-name>` is available:
 
 Example `cURL` call:
 
@@ -148,7 +149,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/get/service/<service-name>/in/
 
 ### List Areas
 
-To list all known **areas** the API endpoint `/api/v1/list/areas` is available:
+To list all known **areas** the REST API endpoint `/api/v1/list/areas` is available:
 
 Example `cURL` call (with prettyfied output):
 
@@ -196,7 +197,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/areas
 
 #### List Services in Area
 
-To list all known **services** in a specifix **area** the API endpoint `/api/v1/list/services/in/<area-name>` is available:
+To list all known **services** in a specifix **area** the REST API endpoint `/api/v1/list/services/in/<area-name>` is available:
 
 Example `cURL` call (with prettyfied output):
 
@@ -240,7 +241,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
 
 #### List Services with Tag
 
-To list all known **services** with a specific **tag** the API endpoint `/api/v1/list/services/with/<tag-name>` is available:
+To list all known **services** with a specific **tag** the REST API endpoint `/api/v1/list/services/with/<tag-name>` is available:
 
 Example `cURL` call (with prettyfied output):
 
@@ -297,7 +298,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
 
 ### List Tags
 
-To list all known **tags** the API endpoint `/api/v1/list/tags` is available:
+To list all known **tags** the REST API endpoint `/api/v1/list/tags` is available:
 
 Example `cURL` call (with prettyfied output):
 
