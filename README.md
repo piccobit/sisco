@@ -2,7 +2,9 @@
 <!-- vim-markdown-toc GFM -->
 
 * [Configuration](#configuration)
+* [Integrated Help](#integrated-help)
 * [Database Setup](#database-setup)
+* [Starting the Server](#starting-the-server)
 * [Areas, Services & Tags](#areas-services--tags)
 * [REST API Endpoints](#rest-api-endpoints)
     * [Authentication & Authorization](#authentication--authorization)
@@ -53,6 +55,35 @@ ldapFilterAdminsDN: "(&(objectClass=posixAccount)(memberOf=OU=admins,OU=groups,D
 tokenValidInSeconds: 1800
 ```
 
+## Integrated Help
+
+To show the integrated help just call `sisco` with the `help` command:
+
+```shell
+$ sisco help
+sisco is a small and lightweight server providing the possibility to register services and
+to query for them.
+
+Usage:
+  sisco [command]
+
+Available Commands:
+  admin       Administrate sisco
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  migrate     Support database migration
+  serve       Start server
+  version     Print the version of sisco
+
+Flags:
+  -c, --config string   config file (default is $HOME/.sisco.yaml)
+  -d, --debug           enable debug output
+  -h, --help            help for sisco
+  -p, --pretty          enable pretty output
+
+Use "sisco [command] --help" for more information about a command.
+```
+
 ## Database Setup
 
 As soon as your configuration is ready, the initial database setup for `sisco` is pretty easy, just execute the following command:
@@ -62,6 +93,14 @@ sisco migrate apply
 ```
 
 Depending on your configured database type `sisco` is applying the database migrations stored in the database-specific directory in the `migrations` folder.
+
+## Starting the Server
+
+The server can be started using the `serve` command:
+
+```shell
+sisco serve
+```
 
 ## Areas, Services & Tags
 
