@@ -4,7 +4,7 @@
 * [Configuration](#configuration)
 * [Database Setup](#database-setup)
 * [Areas, Services & Tags](#areas-services--tags)
-* [REST API Endpoints](#api-endpoints)
+* [REST API Endpoints](#rest-api-endpoints)
     * [Authentication & Authorization](#authentication--authorization)
     * [Register an Area](#register-an-area)
     * [Register a Service](#register-a-service)
@@ -93,7 +93,7 @@ The REST API call is answered with a bearer token which you have to use in any o
 
 ### Register an Area
 
-To register a new **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/register/area/<area-name>`:
+To register a new **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/area/<area-name>`:
 
 Example `register-area.json` file:
 
@@ -113,7 +113,7 @@ $ curl -X POST -H "Bearer: <token>" --data @register-area.json localhost:9999/ap
 
 ### Register a Service
 
-To register a new **service** in an already existin **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/register/service/<service-name>/in/<area-name>`:
+To register a new **service** in an already existing **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/service/<service-name>/in/<area-name>`:
 
 Example `register-service.json` file:
 
@@ -151,7 +151,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/get/service/<service-name>/in/
 
 To list all known **areas** the REST API endpoint `/api/v1/list/areas` is available:
 
-Example `cURL` call (with prettyfied output):
+Example `cURL` call (with prettied output):
 
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/areas
@@ -197,9 +197,9 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/areas
 
 #### List Services in Area
 
-To list all known **services** in a specifix **area** the REST API endpoint `/api/v1/list/services/in/<area-name>` is available:
+To list all known **services** in a specific **area** the REST API endpoint `/api/v1/list/services/in/<area-name>` is available:
 
-Example `cURL` call (with prettyfied output):
+Example `cURL` call (with prettied output):
 
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
@@ -243,7 +243,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
 
 To list all known **services** with a specific **tag** the REST API endpoint `/api/v1/list/services/with/<tag-name>` is available:
 
-Example `cURL` call (with prettyfied output):
+Example `cURL` call (with prettied output):
 
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
@@ -300,7 +300,7 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/services/in/<area-name>
 
 To list all known **tags** the REST API endpoint `/api/v1/list/tags` is available:
 
-Example `cURL` call (with prettyfied output):
+Example `cURL` call (with prettied output):
 
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/tags
@@ -337,5 +337,37 @@ $ curl -H "Bearer: <token>" localhost:9999/api/v1/list/tags
     "edges": {}
   }
 ]
+```
+
+## Delete Area
+
+To delete an area the REST API endpoint `/api/v1/admin/delete/area/<area>` is available:
+
+***Note:*** An area can be only deleted if it does not contain any services.
+
+Example `cURL` call (with prettied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/area/foobar
+```
+
+## Delete Service
+
+To delete a service the REST API endpoint `/api/v1/admin/delete/service/<service>/in/<area>` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/service/<service>/in/<area>
+```
+
+## Delete Tag
+
+To delete a tag the REST API endpoint `/api/v1/admin/delete/tag/<tag>` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+$ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/tag/<tag>
 ```
 
