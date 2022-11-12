@@ -14,6 +14,9 @@
         * [List Services in Area](#list-services-in-area)
         * [List Services with Tag](#list-services-with-tag)
     * [List Tags](#list-tags)
+* [Delete Area](#delete-area)
+* [Delete Service](#delete-service)
+* [Delete Tag](#delete-tag)
 
 <!-- vim-markdown-toc -->
 
@@ -370,4 +373,5 @@ Example `cURL` call (with prettied output):
 ```shell
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/tag/<tag>
 ```
+
 
