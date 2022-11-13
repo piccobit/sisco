@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -8,6 +9,15 @@ import (
 	"sisco/internal/cfg"
 	"sisco/internal/grpc/client"
 )
+
+type StatusCode struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+type AuthTokenInfo struct {
+	Token        string `json:"token"`
+	IsAdminToken bool   `json:"isAdminToken"`
+}
 
 func init() {
 	adminCmd.AddCommand(adminLoginCmd)
@@ -84,7 +94,12 @@ func execAdminLogin(cmd *cobra.Command, args []string) {
 		log.Fatalln(err)
 	}
 
-	fmt.Printf("Token: %s, IsAdminToken: %t\n", bearerToken, isAdminToken)
+	jsonBlob, err := json.Marshal(AuthTokenInfo{
+		Token:        bearerToken,
+		IsAdminToken: isAdminToken,
+	})
+
+	fmt.Println(string(jsonBlob))
 }
 
 func execAdminRegisterArea(cmd *cobra.Command, args []string) {
@@ -96,9 +111,9 @@ func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 
 	err := client.RegisterArea(listenAddr, args[0], args[1], args[2])
 	if err == nil {
-		fmt.Println("Status: OK")
+		fmt.Println(StatusCode{"OK", ""})
 	} else {
-		fmt.Printf("Status: NOT OK - %v\n", err)
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
 	}
 }
 
@@ -111,9 +126,9 @@ func execAdminRegisterService(cmd *cobra.Command, args []string) {
 
 	err := client.RegisterService(listenAddr, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7:]...)
 	if err == nil {
-		fmt.Println("Status: OK")
+		fmt.Println(StatusCode{"OK", ""})
 	} else {
-		fmt.Printf("Status: NOT OK - %v\n", err)
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
 	}
 }
 
@@ -126,9 +141,9 @@ func execAdminDeleteArea(cmd *cobra.Command, args []string) {
 
 	err := client.DeleteArea(listenAddr, args[0], args[1])
 	if err == nil {
-		fmt.Println("Status: OK")
+		fmt.Println(StatusCode{"OK", ""})
 	} else {
-		fmt.Printf("Status: NOT OK - %v\n", err)
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
 	}
 }
 
@@ -141,8 +156,9 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 
 	err := client.DeleteService(listenAddr, args[0], args[1], args[2])
 	if err == nil {
-		fmt.Println("Status: OK")
+		fmt.Println(StatusCode{Status: "OK"})
 	} else {
 		fmt.Printf("Status: NOT OK - %v\n", err)
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
 	}
 }
