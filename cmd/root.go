@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"log"
+
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,7 +25,17 @@ to query for them.`,
 	},
 }
 
+var loginCmd = &cobra.Command{
+	Use:   "login <user> <password>",
+	Short: "Login to sisco",
+	Long:  `Login to Sisco gRPC-based administration interface.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		execAdminLogin(cmd, args)
+	},
+}
+
 func init() {
+	rootCmd.AddCommand(loginCmd)
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.PersistentFlags().BoolVarP(&pretty, "pretty", "p", false, "enable pretty output")
 	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))

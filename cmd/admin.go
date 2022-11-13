@@ -20,22 +20,12 @@ type AuthTokenInfo struct {
 }
 
 func init() {
-	adminCmd.AddCommand(adminLoginCmd)
 	adminCmd.AddCommand(adminRegisterAreaCmd)
 	adminCmd.AddCommand(adminRegisterServiceCmd)
 	adminCmd.AddCommand(adminDeleteAreaCmd)
 	adminCmd.AddCommand(adminDeleteServiceCmd)
 
 	rootCmd.AddCommand(adminCmd)
-}
-
-var adminLoginCmd = &cobra.Command{
-	Use:   "login <user> <password>",
-	Short: "Login to sisco",
-	Long:  `Login to Sisco gRPC-based administration interface.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		execAdminLogin(cmd, args)
-	},
 }
 
 var adminRegisterAreaCmd = &cobra.Command{
