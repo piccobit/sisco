@@ -2,6 +2,7 @@
 debug: true
 # ginReleaseMode: true
 port: 9999
+gRPCPort: 8888
 dbType: "postgres" # or "mysql"
 dbHost: "localhost"
 dbPort: 5432 # or 3306 for "mysql"
