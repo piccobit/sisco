@@ -19,3 +19,7 @@
 
 # Binary
 sisco
+
+# TLS files
+*.crt
+*.key

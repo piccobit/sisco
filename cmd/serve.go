@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"sisco/ent"
 	"sisco/ent/area"
 	"sisco/ent/service"
@@ -86,7 +87,18 @@ func serve() {
 
 	grpcListenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	grpcSrv := grpc.NewServer()
+	var grpcSrv *grpc.Server
+
+	if cfg.Config.UseTLS {
+		creds, err := credentials.NewServerTLSFromFile(cfg.Config.TLSCertFile, cfg.Config.TLSKeyFile)
+		if err != nil {
+			log.Fatalf("failed to setup TLS: %v", err)
+		}
+
+		grpcSrv = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		grpcSrv = grpc.NewServer()
+	}
 
 	go grpcServer(grpcSrv, grpcListenAddr)
 
@@ -132,8 +144,14 @@ func serve() {
 }
 
 func httpServer(srv *http.Server) {
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("failed listening: %v", err)
+	if cfg.Config.UseTLS {
+		if err := srv.ListenAndServeTLS(cfg.Config.TLSCertFile, cfg.Config.TLSKeyFile); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("failed listening: %v", err)
+		}
+	} else {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("failed listening: %v", err)
+		}
 	}
 
 	log.Println("HTTP server shut down")

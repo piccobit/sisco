@@ -2,7 +2,9 @@ package client
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials"
 	"log"
+	"sisco/internal/cfg"
 	"time"
 
 	"google.golang.org/grpc"
@@ -11,7 +13,18 @@ import (
 )
 
 func Login(listenAddr string, user string, password string) (string, bool, error) {
-	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	var err error
+	var creds credentials.TransportCredentials
+
+	if cfg.Config.UseTLS {
+		creds, err = credentials.NewClientTLSFromFile(cfg.Config.TLSCertFile, "")
+		if err != nil {
+			log.Fatalf("could not process the credentials: %v", err)
+		}
+	} else {
+		creds = insecure.NewCredentials()
+	}
+	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

@@ -17,6 +17,9 @@ type Configuration struct {
 	GinReleaseMode      bool     `yaml:"ginReleaseMode,omitempty"`
 	Port                int      `yaml:"port"`
 	GRPCPort            int      `yaml:"gRPCPort"`
+	UseTLS              bool     `yaml:"useTLS"`
+	TLSCertFile         string   `yaml:"tlsCertFile"`
+	TLSKeyFile          string   `yaml:"tlsKeyFile"`
 	DBType              string   `yaml:"dbType"`
 	DBHost              string   `yaml:"dbHost"`
 	DBPort              int      `yaml:"dbPort"`
