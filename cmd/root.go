@@ -26,7 +26,11 @@ to query for them.`,
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.PersistentFlags().BoolVarP(&pretty, "pretty", "p", false, "enable pretty output")
-	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	if err != nil {
+		log.Fatalln("could not bind to flag '--debug'")
+	}
+
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.sisco.yaml)")
 }
 
