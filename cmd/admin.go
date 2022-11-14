@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/spf13/cobra"
+	"log"
 	"sisco/internal/cfg"
-	"sisco/internal/grpc/client"
+	"sisco/internal/crpc"
 )
 
 type StatusCode struct {
@@ -76,12 +75,16 @@ func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	grpcClient, err := client.New(listenAddr)
+	rpcClient, err := crpc.New(
+		crpc.ListenAddr(listenAddr),
+		crpc.UseTLS(cfg.Config.UseTLS),
+		crpc.TLSCertFile(cfg.Config.TLSCertFile),
+	)
 	if err != nil {
 		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 
-	err = grpcClient.RegisterArea(args[0], args[1], args[2])
+	err = rpcClient.RegisterArea(args[0], args[1], args[2])
 	if err == nil {
 		log.Println(StatusCode{"OK", ""})
 	} else {
@@ -96,7 +99,11 @@ func execAdminRegisterService(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	grpcClient, err := client.New(listenAddr)
+	grpcClient, err := crpc.New(
+		crpc.ListenAddr(listenAddr),
+		crpc.UseTLS(cfg.Config.UseTLS),
+		crpc.TLSCertFile(cfg.Config.TLSCertFile),
+	)
 	if err != nil {
 		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
@@ -116,7 +123,11 @@ func execAdminDeleteArea(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	grpcClient, err := client.New(listenAddr)
+	grpcClient, err := crpc.New(
+		crpc.ListenAddr(listenAddr),
+		crpc.UseTLS(cfg.Config.UseTLS),
+		crpc.TLSCertFile(cfg.Config.TLSCertFile),
+	)
 	if err != nil {
 		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
@@ -136,7 +147,11 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	grpcClient, err := client.New(listenAddr)
+	grpcClient, err := crpc.New(
+		crpc.ListenAddr(listenAddr),
+		crpc.UseTLS(cfg.Config.UseTLS),
+		crpc.TLSCertFile(cfg.Config.TLSCertFile),
+	)
 	if err != nil {
 		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}

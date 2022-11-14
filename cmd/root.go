@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sisco/internal/crpc"
 
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"sisco/internal/cfg"
-	"sisco/internal/grpc/client"
 )
 
 var (
@@ -63,7 +63,11 @@ func execLogin(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	grpcClient, err := client.New(listenAddr)
+	grpcClient, err := crpc.New(
+		crpc.ListenAddr(listenAddr),
+		crpc.UseTLS(cfg.Config.UseTLS),
+		crpc.TLSCertFile(cfg.Config.TLSCertFile),
+	)
 	if err != nil {
 		log.Fatalln(err)
 	}

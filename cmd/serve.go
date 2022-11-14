@@ -7,21 +7,19 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sisco/internal/srpc"
 	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"sisco/ent"
 	"sisco/ent/area"
 	"sisco/ent/service"
 	"sisco/ent/tag"
 	"sisco/internal/cfg"
 	"sisco/internal/db"
-	"sisco/internal/grpc/server"
 )
 
 // type gRPCServer struct
@@ -86,20 +84,14 @@ func serve() {
 
 	grpcListenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	var grpcSrv *grpc.Server
+	grpcSrv, err := srpc.New(
+		srpc.ListenAddr(grpcListenAddr),
+		srpc.UseTLS(cfg.Config.UseTLS),
+		srpc.TLSCertFile(cfg.Config.TLSCertFile),
+		srpc.TLSKeyFile(cfg.Config.TLSKeyFile),
+	)
 
-	if cfg.Config.UseTLS {
-		creds, err := credentials.NewServerTLSFromFile(cfg.Config.TLSCertFile, cfg.Config.TLSKeyFile)
-		if err != nil {
-			log.Fatalf("failed to setup TLS: %v", err)
-		}
-
-		grpcSrv = grpc.NewServer(grpc.Creds(creds))
-	} else {
-		grpcSrv = grpc.NewServer()
-	}
-
-	go grpcServer(grpcSrv, grpcListenAddr)
+	go rpcServer(grpcSrv)
 
 	listenAddr := fmt.Sprintf("[::]:%d", cfg.Config.Port)
 
@@ -158,8 +150,8 @@ func httpServer(srv *http.Server) {
 	log.Println("HTTP server shut down")
 }
 
-func grpcServer(srv *grpc.Server, listenAddr string) {
-	server.Run(srv, listenAddr)
+func rpcServer(srv *srpc.Server) {
+	srv.Run()
 
 	log.Println("gRPC server shut down")
 }
