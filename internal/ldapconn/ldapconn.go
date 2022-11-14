@@ -42,12 +42,12 @@ func New(cfg *cfg.Configuration) (*LDAPConn, error) {
 	return &lc, nil
 }
 
-func (lc *LDAPConn) Authenticate(user string, password string) (string, bool, error) {
+func (lc *LDAPConn) Authenticate(user string, password string) (bool, error) {
 	var err error
 
 	// We check first if this is an 'admin' token.
 
-	isAdminToken := false
+	isAdmin := false
 
 	filter := replace(lc.config.LdapFilterAdminsDN, "{user}", ldap.EscapeFilter(user))
 
@@ -55,11 +55,11 @@ func (lc *LDAPConn) Authenticate(user string, password string) (string, bool, er
 
 	result, err := lc.ldapConn.Search(searchReq)
 	if err != nil {
-		return "", false, err
+		return false, err
 	}
 
 	if len(result.Entries) != 0 {
-		isAdminToken = true
+		isAdmin = true
 	} else {
 		filter = replace(lc.config.LdapFilterUsersDN, "{user}", ldap.EscapeFilter(user))
 
@@ -67,11 +67,11 @@ func (lc *LDAPConn) Authenticate(user string, password string) (string, bool, er
 
 		result, err = lc.ldapConn.Search(searchReq)
 		if err != nil {
-			return "", false, err
+			return false, err
 		}
 
 		if len(result.Entries) == 0 {
-			return "", false, errors.New("user not found")
+			return false, errors.New("user not found")
 		}
 	}
 
@@ -79,10 +79,10 @@ func (lc *LDAPConn) Authenticate(user string, password string) (string, bool, er
 
 	err = lc.ldapConn.Bind(dn, password)
 	if err != nil {
-		return "", false, err
+		return false, err
 	}
 
-	return dn, isAdminToken, nil
+	return isAdmin, nil
 }
 
 func replace(haystack string, needle string, replacement string) string {
