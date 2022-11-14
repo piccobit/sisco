@@ -100,12 +100,14 @@ func serve() {
 
 	go grpcServer(grpcSrv, grpcListenAddr)
 
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.Port)
+	listenAddr := fmt.Sprintf("[::]:%d", cfg.Config.Port)
 
 	httpSrv := &http.Server{
 		Addr:    listenAddr,
 		Handler: router,
 	}
+
+	log.Printf("HTTP server listening at %s", httpSrv.Addr)
 
 	go httpServer(httpSrv)
 
