@@ -6,32 +6,19 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"sisco/pb"
 )
 
-func DeleteArea(listenAddr string, bearer string, area string) error {
-	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return errors.New(fmt.Sprintf("did not connect: %v", err))
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
-
-		}
-	}(conn)
-
-	c := pb.NewDeleteAreaClient(conn)
+func (c *Client) DeleteArea(bearer string, areaName string) error {
+	dac := pb.NewDeleteAreaClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	_, err = c.DeleteArea(ctx, &pb.DeleteAreaRequest{
+	_, err := dac.DeleteArea(ctx, &pb.DeleteAreaRequest{
 		Bearer: bearer,
-		Area:   area,
+		Area:   areaName,
 	})
 	if err != nil {
 		return errors.New(fmt.Sprintf("delete area failed: %s", err))
@@ -40,28 +27,17 @@ func DeleteArea(listenAddr string, bearer string, area string) error {
 	return err
 }
 
-func DeleteService(listenAddr string, bearer string, service string, area string) error {
-	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return errors.New(fmt.Sprintf("did not connect: %v", err))
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
-
-		}
-	}(conn)
-
-	c := pb.NewDeleteServiceClient(conn)
+func (c *Client) DeleteService(bearer string, serviceName string, areaName string) error {
+	dsc := pb.NewDeleteServiceClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	_, err = c.DeleteService(ctx, &pb.DeleteServiceRequest{
+	_, err := dsc.DeleteService(ctx, &pb.DeleteServiceRequest{
 		Bearer:  bearer,
-		Service: service,
-		Area:    area,
+		Service: serviceName,
+		Area:    areaName,
 	})
 	if err != nil {
 		return errors.New(fmt.Sprintf("delete area failed: %s", err))

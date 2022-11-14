@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -70,28 +69,6 @@ var adminCmd = &cobra.Command{
 	Long:  `Sisco gRPC-based administration interface.`,
 }
 
-func execAdminLogin(cmd *cobra.Command, args []string) {
-	var err error
-
-	if len(args) != 2 {
-		log.Fatalln(cmd.Usage())
-	}
-
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
-
-	bearerToken, isAdminToken, err := client.Login(listenAddr, args[0], args[1])
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	jsonBlob, err := json.Marshal(AuthTokenInfo{
-		Token:        bearerToken,
-		IsAdminToken: isAdminToken,
-	})
-
-	fmt.Println(string(jsonBlob))
-}
-
 func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 	if len(args) != 3 {
 		log.Fatalln(cmd.Usage())
@@ -99,7 +76,14 @@ func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	err := client.RegisterArea(listenAddr, args[0], args[1], args[2])
+	grpcClient, err := client.New(listenAddr)
+	if err == nil {
+		fmt.Println(StatusCode{"OK", ""})
+	} else {
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	}
+
+	err = grpcClient.RegisterArea(args[0], args[1], args[2])
 	if err == nil {
 		fmt.Println(StatusCode{"OK", ""})
 	} else {
@@ -114,7 +98,14 @@ func execAdminRegisterService(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	err := client.RegisterService(listenAddr, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7:]...)
+	grpcClient, err := client.New(listenAddr)
+	if err == nil {
+		fmt.Println(StatusCode{"OK", ""})
+	} else {
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	}
+
+	err = grpcClient.RegisterService(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7:]...)
 	if err == nil {
 		fmt.Println(StatusCode{"OK", ""})
 	} else {
@@ -129,7 +120,14 @@ func execAdminDeleteArea(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	err := client.DeleteArea(listenAddr, args[0], args[1])
+	grpcClient, err := client.New(listenAddr)
+	if err == nil {
+		fmt.Println(StatusCode{"OK", ""})
+	} else {
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	}
+
+	err = grpcClient.DeleteArea(args[0], args[1])
 	if err == nil {
 		fmt.Println(StatusCode{"OK", ""})
 	} else {
@@ -144,7 +142,14 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
-	err := client.DeleteService(listenAddr, args[0], args[1], args[2])
+	grpcClient, err := client.New(listenAddr)
+	if err == nil {
+		fmt.Println(StatusCode{"OK", ""})
+	} else {
+		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	}
+
+	err = grpcClient.DeleteService(args[0], args[1], args[2])
 	if err == nil {
 		fmt.Println(StatusCode{Status: "OK"})
 	} else {

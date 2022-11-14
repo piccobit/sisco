@@ -6,30 +6,17 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"sisco/pb"
 )
 
-func RegisterArea(listenAddr string, bearer string, area string, description string) error {
-	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return errors.New(fmt.Sprintf("did not connect: %v", err))
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
-
-		}
-	}(conn)
-
-	c := pb.NewRegisterAreaClient(conn)
+func (c *Client) RegisterArea(bearer string, area string, description string) error {
+	rac := pb.NewRegisterAreaClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	_, err = c.RegisterArea(ctx, &pb.RegisterAreaRequest{
+	_, err := rac.RegisterArea(ctx, &pb.RegisterAreaRequest{
 		Bearer:      bearer,
 		Area:        area,
 		Description: description,
@@ -41,28 +28,17 @@ func RegisterArea(listenAddr string, bearer string, area string, description str
 	return err
 }
 
-func RegisterService(listenAddr string, bearer string, service string, area string, description string, protocol string, host string, port string, tags ...string) error {
-	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return errors.New(fmt.Sprintf("did not connect: %v", err))
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
-
-		}
-	}(conn)
-
-	c := pb.NewRegisterServiceClient(conn)
+func (c *Client) RegisterService(bearer string, serviceName string, areaName string, description string, protocol string, host string, port string, tags ...string) error {
+	rsc := pb.NewRegisterServiceClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	_, err = c.RegisterService(ctx, &pb.RegisterServiceRequest{
+	_, err := rsc.RegisterService(ctx, &pb.RegisterServiceRequest{
 		Bearer:      bearer,
-		Service:     service,
-		Area:        area,
+		Service:     serviceName,
+		Area:        areaName,
 		Description: description,
 		Protocol:    protocol,
 		Host:        host,

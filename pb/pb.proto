@@ -4,48 +4,37 @@ option go_package = "github.com/piccobit/sisco/pb";
 
 package pb;
 
-// The 'Login' service definition.
 service Login {
-  // Sends a login request.
   rpc Login (LoginRequest) returns (LoginReply) {}
 }
 
-// The request message containing the user's name and password.
 message LoginRequest {
   string user = 1;
   string password = 2;
 }
 
-// The response message containing the bearer token.
 message LoginReply {
   string token = 1;
   bool isAdminToken = 2;
 }
 
-// The 'RegisterArea' service definition.
 service RegisterArea {
-  // Sends a RegisterArea request.
   rpc RegisterArea (RegisterAreaRequest) returns (RegisterAreaReply) {}
 }
 
-// The request message containing the bearer token, area and description.
 message RegisterAreaRequest {
   string bearer = 1;
   string area = 2;
   string description = 3;
 }
 
-// The response message.
 message RegisterAreaReply {
 }
 
-// The 'RegisterService' service definition.
 service RegisterService {
-  // Sends a RegisterService request.
   rpc RegisterService (RegisterServiceRequest) returns (RegisterServiceReply) {}
 }
 
-// The request message containing the bearer token, area and description.
 message RegisterServiceRequest {
   string bearer = 1;
   string service = 2;
@@ -57,39 +46,50 @@ message RegisterServiceRequest {
   repeated string tags = 8;
 }
 
-// The response message.
 message RegisterServiceReply {
 }
 
-// The 'DeleteArea' service definition.
 service DeleteArea {
-  // Sends a DeleteArea request.
   rpc DeleteArea (DeleteAreaRequest) returns (DeleteAreaReply) {}
 }
 
-// The request message containing the bearer and area name.
 message DeleteAreaRequest {
   string bearer = 1;
   string area = 2;
 }
 
-// The response message.
 message DeleteAreaReply {
 }
 
-// The 'DeleteService' service definition.
 service DeleteService {
-  // Sends a DeleteService request.
   rpc DeleteService (DeleteServiceRequest) returns (DeleteServiceReply) {}
 }
 
-// The request message containing the bearer and area name.
 message DeleteServiceRequest {
   string bearer = 1;
   string service = 2;
   string area = 3;
 }
 
-// The response message.
 message DeleteServiceReply {
+}
+
+service ListServiceInArea {
+  rpc ListServiceInArea (ListServiceInAreaRequest) returns (ListServiceInAreaReply) {}
+}
+
+message ListServiceInAreaRequest {
+  string bearer = 1;
+  string service = 2;
+  string area = 3;
+}
+
+message ListServiceInAreaReply {
+  string service = 1;
+  string area = 2;
+  string description = 3;
+  string protocol = 4;
+  string host = 5;
+  string port = 6;
+  repeated string tags = 7;
 }

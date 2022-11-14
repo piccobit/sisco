@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	Version string = "dev"
-	Commit  string = "-"
+	Version = "dev"
+	Commit  = "-"
 )
 
 func init() {
@@ -18,7 +18,7 @@ func init() {
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of sisco",
-	Long:  `All software has versions. This is sisco's`,
+	Long:  `All software has versions.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("sisco - Lightweight Service Discovery -- %s -- %s\n", Version, Commit)
 	},

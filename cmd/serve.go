@@ -65,11 +65,9 @@ func serve() {
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
 
-	getGroup := v1Group.Group("/get", checkToken(false))
-	getGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
-
 	listGroup := v1Group.Group("/list", checkToken(false))
 	listGroup.GET("/areas", apiListAreas)
+	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
 	listGroup.GET("/services/in/:area", apiListServicesInArea)
 	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
 	listGroup.GET("/tags", apiListTags)
@@ -424,7 +422,7 @@ func apiLogin(c *gin.Context) {
 		return
 	}
 
-	authToken, isAdminToken, err := dbConn.GetSecretToken(ctx, l.User, l.Password)
+	authToken, isAdminToken, err := dbConn.QuerySecretToken(ctx, l.User, l.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),

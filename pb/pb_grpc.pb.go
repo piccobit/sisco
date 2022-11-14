@@ -22,7 +22,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LoginClient interface {
-	// Sends a login request.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
 }
 
@@ -47,7 +46,6 @@ func (c *loginClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.
 // All implementations must embed UnimplementedLoginServer
 // for forward compatibility
 type LoginServer interface {
-	// Sends a login request.
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
 	mustEmbedUnimplementedLoginServer()
 }
@@ -110,7 +108,6 @@ var Login_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RegisterAreaClient interface {
-	// Sends a RegisterArea request.
 	RegisterArea(ctx context.Context, in *RegisterAreaRequest, opts ...grpc.CallOption) (*RegisterAreaReply, error)
 }
 
@@ -135,7 +132,6 @@ func (c *registerAreaClient) RegisterArea(ctx context.Context, in *RegisterAreaR
 // All implementations must embed UnimplementedRegisterAreaServer
 // for forward compatibility
 type RegisterAreaServer interface {
-	// Sends a RegisterArea request.
 	RegisterArea(context.Context, *RegisterAreaRequest) (*RegisterAreaReply, error)
 	mustEmbedUnimplementedRegisterAreaServer()
 }
@@ -198,7 +194,6 @@ var RegisterArea_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RegisterServiceClient interface {
-	// Sends a RegisterService request.
 	RegisterService(ctx context.Context, in *RegisterServiceRequest, opts ...grpc.CallOption) (*RegisterServiceReply, error)
 }
 
@@ -223,7 +218,6 @@ func (c *registerServiceClient) RegisterService(ctx context.Context, in *Registe
 // All implementations must embed UnimplementedRegisterServiceServer
 // for forward compatibility
 type RegisterServiceServer interface {
-	// Sends a RegisterService request.
 	RegisterService(context.Context, *RegisterServiceRequest) (*RegisterServiceReply, error)
 	mustEmbedUnimplementedRegisterServiceServer()
 }
@@ -286,7 +280,6 @@ var RegisterService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeleteAreaClient interface {
-	// Sends a DeleteArea request.
 	DeleteArea(ctx context.Context, in *DeleteAreaRequest, opts ...grpc.CallOption) (*DeleteAreaReply, error)
 }
 
@@ -311,7 +304,6 @@ func (c *deleteAreaClient) DeleteArea(ctx context.Context, in *DeleteAreaRequest
 // All implementations must embed UnimplementedDeleteAreaServer
 // for forward compatibility
 type DeleteAreaServer interface {
-	// Sends a DeleteArea request.
 	DeleteArea(context.Context, *DeleteAreaRequest) (*DeleteAreaReply, error)
 	mustEmbedUnimplementedDeleteAreaServer()
 }
@@ -374,7 +366,6 @@ var DeleteArea_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeleteServiceClient interface {
-	// Sends a DeleteService request.
 	DeleteService(ctx context.Context, in *DeleteServiceRequest, opts ...grpc.CallOption) (*DeleteServiceReply, error)
 }
 
@@ -399,7 +390,6 @@ func (c *deleteServiceClient) DeleteService(ctx context.Context, in *DeleteServi
 // All implementations must embed UnimplementedDeleteServiceServer
 // for forward compatibility
 type DeleteServiceServer interface {
-	// Sends a DeleteService request.
 	DeleteService(context.Context, *DeleteServiceRequest) (*DeleteServiceReply, error)
 	mustEmbedUnimplementedDeleteServiceServer()
 }
@@ -452,6 +442,92 @@ var DeleteService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteService",
 			Handler:    _DeleteService_DeleteService_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pb/pb.proto",
+}
+
+// ListServiceInAreaClient is the client API for ListServiceInArea service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ListServiceInAreaClient interface {
+	ListServiceInArea(ctx context.Context, in *ListServiceInAreaRequest, opts ...grpc.CallOption) (*ListServiceInAreaReply, error)
+}
+
+type listServiceInAreaClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewListServiceInAreaClient(cc grpc.ClientConnInterface) ListServiceInAreaClient {
+	return &listServiceInAreaClient{cc}
+}
+
+func (c *listServiceInAreaClient) ListServiceInArea(ctx context.Context, in *ListServiceInAreaRequest, opts ...grpc.CallOption) (*ListServiceInAreaReply, error) {
+	out := new(ListServiceInAreaReply)
+	err := c.cc.Invoke(ctx, "/pb.ListServiceInArea/ListServiceInArea", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListServiceInAreaServer is the server API for ListServiceInArea service.
+// All implementations must embed UnimplementedListServiceInAreaServer
+// for forward compatibility
+type ListServiceInAreaServer interface {
+	ListServiceInArea(context.Context, *ListServiceInAreaRequest) (*ListServiceInAreaReply, error)
+	mustEmbedUnimplementedListServiceInAreaServer()
+}
+
+// UnimplementedListServiceInAreaServer must be embedded to have forward compatible implementations.
+type UnimplementedListServiceInAreaServer struct {
+}
+
+func (UnimplementedListServiceInAreaServer) ListServiceInArea(context.Context, *ListServiceInAreaRequest) (*ListServiceInAreaReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceInArea not implemented")
+}
+func (UnimplementedListServiceInAreaServer) mustEmbedUnimplementedListServiceInAreaServer() {}
+
+// UnsafeListServiceInAreaServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ListServiceInAreaServer will
+// result in compilation errors.
+type UnsafeListServiceInAreaServer interface {
+	mustEmbedUnimplementedListServiceInAreaServer()
+}
+
+func RegisterListServiceInAreaServer(s grpc.ServiceRegistrar, srv ListServiceInAreaServer) {
+	s.RegisterService(&ListServiceInArea_ServiceDesc, srv)
+}
+
+func _ListServiceInArea_ListServiceInArea_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceInAreaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ListServiceInAreaServer).ListServiceInArea(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.ListServiceInArea/ListServiceInArea",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ListServiceInAreaServer).ListServiceInArea(ctx, req.(*ListServiceInAreaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ListServiceInArea_ServiceDesc is the grpc.ServiceDesc for ListServiceInArea service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ListServiceInArea_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.ListServiceInArea",
+	HandlerType: (*ListServiceInAreaServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListServiceInArea",
+			Handler:    _ListServiceInArea_ListServiceInArea_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

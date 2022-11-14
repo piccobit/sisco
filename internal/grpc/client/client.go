@@ -1,18 +1,18 @@
 package client
 
 import (
-	"context"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"sisco/internal/cfg"
-	"time"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"sisco/pb"
 )
 
-func Login(listenAddr string, user string, password string) (string, bool, error) {
+type Client struct {
+	grpcClient *grpc.ClientConn
+}
+
+func New(listenAddr string) (*Client, error) {
 	var err error
 	var creds credentials.TransportCredentials
 
@@ -24,30 +24,20 @@ func Login(listenAddr string, user string, password string) (string, bool, error
 	} else {
 		creds = insecure.NewCredentials()
 	}
+
 	conn, err := grpc.Dial(listenAddr, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
 
-		}
-	}(conn)
+	client := Client{grpcClient: conn}
 
-	c := pb.NewLoginClient(conn)
+	return &client, nil
+}
 
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
-
-	r, err := c.Login(ctx, &pb.LoginRequest{
-		User:     user,
-		Password: password,
-	})
+func (c *Client) Close() {
+	err := c.grpcClient.Close()
 	if err != nil {
-		log.Fatalf("login failed: %s", err)
+		return
 	}
-
-	return r.GetToken(), r.GetIsAdminToken(), err
 }

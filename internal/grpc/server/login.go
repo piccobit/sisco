@@ -11,7 +11,7 @@ import (
 func (s *server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginReply, error) {
 	var err error
 
-	authToken, isAdminToken, err := dbConn.GetSecretToken(ctx, in.GetUser(), in.GetPassword())
+	authToken, isAdminToken, err := dbConn.QuerySecretToken(ctx, in.GetUser(), in.GetPassword())
 
 	_, err = ldapconn.New(&cfg.Config)
 	if err != nil {
