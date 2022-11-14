@@ -64,10 +64,8 @@ func execLogin(cmd *cobra.Command, args []string) {
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcClient, err := client.New(listenAddr)
-	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
-	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	bearerToken, isAdminToken, err := grpcClient.Login(args[0], args[1])

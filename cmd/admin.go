@@ -77,17 +77,15 @@ func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcClient, err := client.New(listenAddr)
-	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
-	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	if err != nil {
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 
 	err = grpcClient.RegisterArea(args[0], args[1], args[2])
 	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
+		log.Println(StatusCode{"OK", ""})
 	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 }
 
@@ -99,17 +97,15 @@ func execAdminRegisterService(cmd *cobra.Command, args []string) {
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcClient, err := client.New(listenAddr)
-	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
-	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	if err != nil {
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 
 	err = grpcClient.RegisterService(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7:]...)
 	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
+		log.Println(StatusCode{"OK", ""})
 	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 }
 
@@ -121,17 +117,15 @@ func execAdminDeleteArea(cmd *cobra.Command, args []string) {
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcClient, err := client.New(listenAddr)
-	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
-	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	if err != nil {
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 
 	err = grpcClient.DeleteArea(args[0], args[1])
 	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
+		log.Println(StatusCode{"OK", ""})
 	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 }
 
@@ -143,17 +137,14 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcClient, err := client.New(listenAddr)
-	if err == nil {
-		fmt.Println(StatusCode{"OK", ""})
-	} else {
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+	if err != nil {
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 
 	err = grpcClient.DeleteService(args[0], args[1], args[2])
 	if err == nil {
-		fmt.Println(StatusCode{Status: "OK"})
+		log.Println(StatusCode{Status: "OK"})
 	} else {
-		fmt.Printf("Status: NOT OK - %v\n", err)
-		fmt.Println(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(StatusCode{"NOT OK", err.Error()})
 	}
 }
