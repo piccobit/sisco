@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -175,7 +176,9 @@ func apiListAreas(c *gin.Context) {
 		return
 	}
 
-	if pretty {
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
 		c.IndentedJSON(http.StatusOK, a)
 	} else {
 		c.JSON(http.StatusOK, a)
@@ -194,7 +197,9 @@ func apiListTags(c *gin.Context) {
 		return
 	}
 
-	if pretty {
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
 		c.IndentedJSON(http.StatusOK, t)
 	} else {
 		c.JSON(http.StatusOK, t)
@@ -219,7 +224,9 @@ func apiGetServiceInArea(c *gin.Context) {
 		return
 	}
 
-	if pretty {
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
 		c.IndentedJSON(http.StatusOK, s)
 	} else {
 		c.JSON(http.StatusOK, s)
@@ -299,7 +306,9 @@ func apiListServicesInArea(c *gin.Context) {
 		return
 	}
 
-	if pretty {
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
 		c.IndentedJSON(http.StatusOK, s)
 	} else {
 		c.JSON(http.StatusOK, s)
@@ -324,7 +333,9 @@ func apiListServicesWithTag(c *gin.Context) {
 		return
 	}
 
-	if pretty {
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
 		c.IndentedJSON(http.StatusOK, s)
 	} else {
 		c.JSON(http.StatusOK, s)
@@ -433,10 +444,19 @@ func apiLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"token":        authToken,
-		"isAdminToken": isAdminToken,
-	})
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
+		c.IndentedJSON(http.StatusOK, gin.H{
+			"token":        authToken,
+			"isAdminToken": isAdminToken,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"token":        authToken,
+			"isAdminToken": isAdminToken,
+		})
+	}
 }
 
 func checkToken(isAdminToken bool) gin.HandlerFunc {
