@@ -533,3 +533,89 @@ var ListServiceInArea_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "pb/pb.proto",
 }
+
+// ListServicesClient is the client API for ListServices service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ListServicesClient interface {
+	ListServices(ctx context.Context, in *ListServicesRequest, opts ...grpc.CallOption) (*ListServicesReply, error)
+}
+
+type listServicesClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewListServicesClient(cc grpc.ClientConnInterface) ListServicesClient {
+	return &listServicesClient{cc}
+}
+
+func (c *listServicesClient) ListServices(ctx context.Context, in *ListServicesRequest, opts ...grpc.CallOption) (*ListServicesReply, error) {
+	out := new(ListServicesReply)
+	err := c.cc.Invoke(ctx, "/pb.ListServices/ListServices", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListServicesServer is the server API for ListServices service.
+// All implementations must embed UnimplementedListServicesServer
+// for forward compatibility
+type ListServicesServer interface {
+	ListServices(context.Context, *ListServicesRequest) (*ListServicesReply, error)
+	mustEmbedUnimplementedListServicesServer()
+}
+
+// UnimplementedListServicesServer must be embedded to have forward compatible implementations.
+type UnimplementedListServicesServer struct {
+}
+
+func (UnimplementedListServicesServer) ListServices(context.Context, *ListServicesRequest) (*ListServicesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServices not implemented")
+}
+func (UnimplementedListServicesServer) mustEmbedUnimplementedListServicesServer() {}
+
+// UnsafeListServicesServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ListServicesServer will
+// result in compilation errors.
+type UnsafeListServicesServer interface {
+	mustEmbedUnimplementedListServicesServer()
+}
+
+func RegisterListServicesServer(s grpc.ServiceRegistrar, srv ListServicesServer) {
+	s.RegisterService(&ListServices_ServiceDesc, srv)
+}
+
+func _ListServices_ListServices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ListServicesServer).ListServices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.ListServices/ListServices",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ListServicesServer).ListServices(ctx, req.(*ListServicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ListServices_ServiceDesc is the grpc.ServiceDesc for ListServices service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ListServices_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.ListServices",
+	HandlerType: (*ListServicesServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListServices",
+			Handler:    _ListServices_ListServices_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pb/pb.proto",
+}

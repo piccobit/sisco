@@ -724,6 +724,100 @@ func (x *ListServiceInAreaReply) GetTags() []string {
 	return nil
 }
 
+type ListServicesRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Bearer string `protobuf:"bytes,1,opt,name=bearer,proto3" json:"bearer,omitempty"`
+}
+
+func (x *ListServicesRequest) Reset() {
+	*x = ListServicesRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_pb_pb_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListServicesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListServicesRequest) ProtoMessage() {}
+
+func (x *ListServicesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_pb_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListServicesRequest.ProtoReflect.Descriptor instead.
+func (*ListServicesRequest) Descriptor() ([]byte, []int) {
+	return file_pb_pb_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListServicesRequest) GetBearer() string {
+	if x != nil {
+		return x.Bearer
+	}
+	return ""
+}
+
+type ListServicesReply struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Services []string `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
+}
+
+func (x *ListServicesReply) Reset() {
+	*x = ListServicesReply{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_pb_pb_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListServicesReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListServicesReply) ProtoMessage() {}
+
+func (x *ListServicesReply) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_pb_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListServicesReply.ProtoReflect.Descriptor instead.
+func (*ListServicesReply) Descriptor() ([]byte, []int) {
+	return file_pb_pb_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListServicesReply) GetServices() []string {
+	if x != nil {
+		return x.Services
+	}
+	return nil
+}
+
 var File_pb_pb_proto protoreflect.FileDescriptor
 
 var file_pb_pb_proto_rawDesc = []byte{
@@ -790,7 +884,13 @@ var file_pb_pb_proto_rawDesc = []byte{
 	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70,
 	0x6f, 0x72, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x12,
 	0x12, 0x0a, 0x04, 0x74, 0x61, 0x67, 0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x74,
-	0x61, 0x67, 0x73, 0x32, 0x34, 0x0a, 0x05, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12, 0x2b, 0x0a, 0x05,
+	0x61, 0x67, 0x73, 0x22, 0x2d, 0x0a, 0x13, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x62, 0x65,
+	0x61, 0x72, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x62, 0x65, 0x61, 0x72,
+	0x65, 0x72, 0x22, 0x2f, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x73, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x73, 0x32, 0x34, 0x0a, 0x05, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12, 0x2b, 0x0a, 0x05,
 	0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12, 0x10, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x6f, 0x67,
 	0x69, 0x6e, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x32, 0x50, 0x0a, 0x0c, 0x52, 0x65, 0x67,
@@ -820,10 +920,15 @@ var file_pb_pb_proto_rawDesc = []byte{
 	0x72, 0x65, 0x61, 0x12, 0x1c, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72,
 	0x76, 0x69, 0x63, 0x65, 0x49, 0x6e, 0x41, 0x72, 0x65, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x1a, 0x1a, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69,
-	0x63, 0x65, 0x49, 0x6e, 0x41, 0x72, 0x65, 0x61, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x42,
-	0x1e, 0x5a, 0x1c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x69,
-	0x63, 0x63, 0x6f, 0x62, 0x69, 0x74, 0x2f, 0x73, 0x69, 0x73, 0x63, 0x6f, 0x2f, 0x70, 0x62, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x63, 0x65, 0x49, 0x6e, 0x41, 0x72, 0x65, 0x61, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x32,
+	0x50, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x12,
+	0x40, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x12,
+	0x17, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x69,
+	0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22,
+	0x00, 0x42, 0x1e, 0x5a, 0x1c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x70, 0x69, 0x63, 0x63, 0x6f, 0x62, 0x69, 0x74, 0x2f, 0x73, 0x69, 0x73, 0x63, 0x6f, 0x2f, 0x70,
+	0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -838,7 +943,7 @@ func file_pb_pb_proto_rawDescGZIP() []byte {
 	return file_pb_pb_proto_rawDescData
 }
 
-var file_pb_pb_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_pb_pb_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_pb_pb_proto_goTypes = []interface{}{
 	(*LoginRequest)(nil),             // 0: pb.LoginRequest
 	(*LoginReply)(nil),               // 1: pb.LoginReply
@@ -852,6 +957,8 @@ var file_pb_pb_proto_goTypes = []interface{}{
 	(*DeleteServiceReply)(nil),       // 9: pb.DeleteServiceReply
 	(*ListServiceInAreaRequest)(nil), // 10: pb.ListServiceInAreaRequest
 	(*ListServiceInAreaReply)(nil),   // 11: pb.ListServiceInAreaReply
+	(*ListServicesRequest)(nil),      // 12: pb.ListServicesRequest
+	(*ListServicesReply)(nil),        // 13: pb.ListServicesReply
 }
 var file_pb_pb_proto_depIdxs = []int32{
 	0,  // 0: pb.Login.Login:input_type -> pb.LoginRequest
@@ -860,14 +967,16 @@ var file_pb_pb_proto_depIdxs = []int32{
 	6,  // 3: pb.DeleteArea.DeleteArea:input_type -> pb.DeleteAreaRequest
 	8,  // 4: pb.DeleteService.DeleteService:input_type -> pb.DeleteServiceRequest
 	10, // 5: pb.ListServiceInArea.ListServiceInArea:input_type -> pb.ListServiceInAreaRequest
-	1,  // 6: pb.Login.Login:output_type -> pb.LoginReply
-	3,  // 7: pb.RegisterArea.RegisterArea:output_type -> pb.RegisterAreaReply
-	5,  // 8: pb.RegisterService.RegisterService:output_type -> pb.RegisterServiceReply
-	7,  // 9: pb.DeleteArea.DeleteArea:output_type -> pb.DeleteAreaReply
-	9,  // 10: pb.DeleteService.DeleteService:output_type -> pb.DeleteServiceReply
-	11, // 11: pb.ListServiceInArea.ListServiceInArea:output_type -> pb.ListServiceInAreaReply
-	6,  // [6:12] is the sub-list for method output_type
-	0,  // [0:6] is the sub-list for method input_type
+	12, // 6: pb.ListServices.ListServices:input_type -> pb.ListServicesRequest
+	1,  // 7: pb.Login.Login:output_type -> pb.LoginReply
+	3,  // 8: pb.RegisterArea.RegisterArea:output_type -> pb.RegisterAreaReply
+	5,  // 9: pb.RegisterService.RegisterService:output_type -> pb.RegisterServiceReply
+	7,  // 10: pb.DeleteArea.DeleteArea:output_type -> pb.DeleteAreaReply
+	9,  // 11: pb.DeleteService.DeleteService:output_type -> pb.DeleteServiceReply
+	11, // 12: pb.ListServiceInArea.ListServiceInArea:output_type -> pb.ListServiceInAreaReply
+	13, // 13: pb.ListServices.ListServices:output_type -> pb.ListServicesReply
+	7,  // [7:14] is the sub-list for method output_type
+	0,  // [0:7] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -1023,6 +1132,30 @@ func file_pb_pb_proto_init() {
 				return nil
 			}
 		}
+		file_pb_pb_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListServicesRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_pb_pb_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListServicesReply); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1030,9 +1163,9 @@ func file_pb_pb_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_pb_pb_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
-			NumServices:   6,
+			NumServices:   7,
 		},
 		GoTypes:           file_pb_pb_proto_goTypes,
 		DependencyIndexes: file_pb_pb_proto_depIdxs,

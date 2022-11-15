@@ -47,3 +47,22 @@ func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName s
 
 	return &data, err
 }
+
+func (c *Client) ListServices(bearer string) (*[]string, error) {
+	lsiac := pb.NewListServicesClient(c.grpcClient)
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	r, err := lsiac.ListServices(ctx, &pb.ListServicesRequest{
+		Bearer: bearer,
+	})
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("adding area failed: %s", err))
+	}
+
+	data := r.GetServices()
+
+	return &data, err
+}

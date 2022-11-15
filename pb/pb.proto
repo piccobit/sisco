@@ -93,3 +93,15 @@ message ListServiceInAreaReply {
   string port = 6;
   repeated string tags = 7;
 }
+
+service ListServices {
+  rpc ListServices (ListServicesRequest) returns (ListServicesReply) {}
+}
+
+message ListServicesRequest {
+  string bearer = 1;
+}
+
+message ListServicesReply {
+  repeated string services = 1;
+}
