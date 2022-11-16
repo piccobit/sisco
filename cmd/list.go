@@ -5,9 +5,9 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx"
 	"github.com/spf13/cobra"
-	"log"
 	"sisco/internal/cfg"
 	"sisco/internal/crpc"
+	"sisco/internal/exit"
 	"sisco/internal/utils"
 )
 
@@ -18,7 +18,7 @@ var listCmd = &cobra.Command{
 }
 
 var listServicesCmd = &cobra.Command{
-	Use:   "services <token> <area-name>",
+	Use:   "services <area-name>",
 	Short: "List services",
 	Long:  `List all services in a specified area.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -27,7 +27,7 @@ var listServicesCmd = &cobra.Command{
 }
 
 var listAreasCmd = &cobra.Command{
-	Use:   "areas <token>",
+	Use:   "areas",
 	Short: "List areas",
 	Long:  `List all areas.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -46,10 +46,8 @@ func init() {
 
 func execListServices(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		log.Fatalln(cmd.Usage())
+		exit.Fatalln(1, cmd.Usage())
 	}
-
-	getToken()
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
@@ -59,23 +57,21 @@ func execListServices(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	l, err := rpcClient.ListServices(token, args[0])
+	l, err := rpcClient.ListServices(getToken(), args[0])
 	if err != nil {
-		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	log.Println(utils.JSONify(StatusCode{"OK", l}, pretty))
+	fmt.Println(utils.JSONify(StatusCode{"OK", l}, pretty))
 }
 
 func execListAreas(cmd *cobra.Command, args []string) {
 	if len(args) != 0 {
-		log.Fatalln(cmd.Usage())
+		exit.Fatalln(1, cmd.Usage())
 	}
-
-	getToken()
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
@@ -85,13 +81,13 @@ func execListAreas(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	l, err := rpcClient.ListAreas(token)
+	l, err := rpcClient.ListAreas(getToken())
 	if err != nil {
-		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	log.Println(utils.JSONify(StatusCode{"OK", l}, pretty))
+	fmt.Println(utils.JSONify(StatusCode{"OK", l}, pretty))
 }

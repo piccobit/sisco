@@ -4,7 +4,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
+	"sisco/internal/exit"
 )
 
 type Client struct {
@@ -27,7 +27,7 @@ func New(opts ...func(*Client)) (*Client, error) {
 	if newClient.useTLS {
 		creds, err = credentials.NewClientTLSFromFile(newClient.tlsCertFile, "")
 		if err != nil {
-			log.Fatalf("could not process the credentials: %v", err)
+			exit.Fatalf(1, "could not process the credentials: %v", err)
 		}
 	} else {
 		creds = insecure.NewCredentials()
@@ -35,7 +35,7 @@ func New(opts ...func(*Client)) (*Client, error) {
 
 	conn, err := grpc.Dial(newClient.listenAddr, grpc.WithTransportCredentials(creds))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		exit.Fatalf(1, "did not connect: %v", err)
 	}
 
 	newClient.grpcClient = conn

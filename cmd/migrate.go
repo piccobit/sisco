@@ -1,20 +1,14 @@
 package cmd
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-	"fmt"
-	"io/fs"
-	"log"
-	"os"
-	"path/filepath"
-	"strconv"
-
 	atlas "ariga.io/atlas/sql/migrate"
 	"ariga.io/atlas/sql/sqltool"
+	"context"
+	"database/sql"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql/schema"
+	"errors"
+	"fmt"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -22,8 +16,13 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx"
 	"github.com/spf13/cobra"
+	"io/fs"
+	"os"
+	"path/filepath"
 	entMigrate "sisco/ent/migrate"
 	"sisco/internal/cfg"
+	"sisco/internal/exit"
+	"strconv"
 )
 
 var (
@@ -80,7 +79,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 	if migrationsBaseDir == "migrations" {
 		cwd, err := os.Getwd()
 		if err != nil {
-			log.Fatalf("failed getting current working directory: %v", err)
+			exit.Fatalf(1, "failed getting current working directory: %v", err)
 		}
 
 		migrationsDir := filepath.Join(cwd, "migrations", dbType)
@@ -91,7 +90,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 	} else {
 		migrationsDir, err := filepath.Abs(filepath.Join(migrationsBaseDir, dbType))
 		if err != nil {
-			log.Fatalf("failed getting absolute path: %v", err)
+			exit.Fatalf(1, "failed getting absolute path: %v", err)
 		}
 
 		checkMigrationsDir(migrationsDir)
@@ -100,7 +99,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if err != nil {
-		log.Fatalf("failed creating atlas migration directory: %v", err)
+		exit.Fatalf(1, "failed creating atlas migration directory: %v", err)
 	}
 
 	var dbDialect string
@@ -125,7 +124,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if len(args) != 2 {
-		log.Fatalln(cmd.Usage())
+		exit.Fatalln(1, cmd.Usage())
 	}
 
 	// We're computing the diff by connection to the provided empty dev database.
@@ -156,7 +155,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 	// Generate migrations using Atlas support for Postgres (note the Ent dialect option passed above).
 	err = entMigrate.NamedDiff(ctx, dbURL, args[1], opts...)
 	if err != nil {
-		log.Fatalf("failed generating migration files: %v", err)
+		exit.Fatalf(1, "failed generating migration files: %v", err)
 	}
 }
 
@@ -174,7 +173,7 @@ func execMigrateApply(args []string) {
 	if len(args) != 0 {
 		numMigrations, err = strconv.Atoi(args[0])
 		if err != nil {
-			log.Fatalf("could not get number of migrations: %v", err)
+			exit.Fatalf(1, "could not get number of migrations: %v", err)
 		}
 	}
 	var dbURL string
@@ -202,7 +201,7 @@ func execMigrateApply(args []string) {
 
 	db, err := sql.Open(dbType, dbURL)
 	if err != nil {
-		log.Fatalf("failed opening database connection: %v", err)
+		exit.Fatalf(1, "failed opening database connection: %v", err)
 	}
 
 	var driver database.Driver
@@ -217,19 +216,19 @@ func execMigrateApply(args []string) {
 	}
 
 	if err != nil {
-		log.Fatalf("failed getting database driver: %v", err)
+		exit.Fatalf(1, "failed getting database driver: %v", err)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("failed getting current working directory: %v", err)
+		exit.Fatalf(1, "failed getting current working directory: %v", err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
 		fmt.Sprintf("file://%s", filepath.Join(cwd, "migrations", dbType)),
 		dbType, driver)
 	if err != nil {
-		log.Fatalf("failed setting up migration instance: %v", err)
+		exit.Fatalf(1, "failed setting up migration instance: %v", err)
 	}
 
 	if numMigrations != 0 {
@@ -238,31 +237,31 @@ func execMigrateApply(args []string) {
 		err = m.Up()
 	}
 	if err != nil {
-		log.Fatalf("database migration failed: %v", err)
+		exit.Fatalf(1, "database migration failed: %v", err)
 	}
 }
 
 func checkMigrationsDir(migrationsDir string) {
 	fileInfo, err := os.Stat(migrationsDir)
 	if errors.Is(err, fs.ErrNotExist) {
-		log.Fatalf("migrations directory '%s' does not exist: %v", migrationsDir, err)
+		exit.Fatalf(1, "migrations directory '%s' does not exist: %v", migrationsDir, err)
 	}
 
 	if !fileInfo.IsDir() {
-		log.Fatalf("migrations directory '%s' is a file", migrationsDir)
+		exit.Fatalf(1, "migrations directory '%s' is a file", migrationsDir)
 	}
 
 	file, err := os.Open(migrationsDir)
 	if err != nil {
-		log.Fatalf("could not open migrations directory '%s': %v", migrationsDir, err)
+		exit.Fatalf(1, "could not open migrations directory '%s': %v", migrationsDir, err)
 	}
 
 	dirEntries, err := file.Readdirnames(0)
 	if err != nil {
-		log.Fatalf("could not read migrations directory '%s': %v", migrationsDir, err)
+		exit.Fatalf(1, "could not read migrations directory '%s': %v", migrationsDir, err)
 	}
 
 	if len(dirEntries) > 0 {
-		log.Fatalf("migrations directory '%s' is not empty", migrationsDir)
+		exit.Fatalf(1, "migrations directory '%s' is not empty", migrationsDir)
 	}
 }

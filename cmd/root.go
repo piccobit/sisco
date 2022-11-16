@@ -1,17 +1,15 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"os"
-	"sisco/internal/crpc"
-	"sisco/internal/utils"
-
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 	"sisco/internal/cfg"
+	"sisco/internal/crpc"
+	"sisco/internal/exit"
+	"sisco/internal/utils"
 )
 
 var (
@@ -46,7 +44,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&pretty, "pretty", "p", false, "enable pretty output")
 	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 	if err != nil {
-		log.Fatalln("could not bind to flag '--debug'")
+		exit.Fatalln(1, "could not bind to flag '--debug'")
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.sisco.yaml)")
@@ -61,7 +59,7 @@ func execLogin(cmd *cobra.Command, args []string) {
 	var err error
 
 	if len(args) != 2 {
-		log.Fatalln(cmd.Usage())
+		exit.Fatalln(1, cmd.Usage())
 	}
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
@@ -72,29 +70,29 @@ func execLogin(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(err)
+		exit.Fatalln(1, err)
 	}
 
 	bearerToken, isAdminToken, err := grpcClient.Login(args[0], args[1])
 	if err != nil {
-		log.Fatalln(err)
+		exit.Fatalln(1, err)
 	}
 
-	jsonBlob, err := json.Marshal(AuthTokenInfo{
+	fmt.Println(utils.JSONify(AuthTokenInfo{
 		Token:        bearerToken,
 		IsAdminToken: isAdminToken,
-	})
-
-	fmt.Println(string(jsonBlob))
+	}, pretty))
 }
 
-func getToken() {
+func getToken() string {
 	if len(token) == 0 {
 		var ok bool
 
 		token, ok = os.LookupEnv("SISCO_TOKEN")
 		if !ok {
-			log.Fatalln(utils.JSONify(StatusCode{"NOT OK", "missing token"}, pretty))
+			exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", "missing token"}, pretty))
 		}
 	}
+
+	return token
 }

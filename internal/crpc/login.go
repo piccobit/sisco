@@ -2,7 +2,6 @@ package crpc
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"sisco/pb"
@@ -20,7 +19,7 @@ func (c *Client) Login(user string, password string) (string, bool, error) {
 		Password: password,
 	})
 	if err != nil {
-		log.Fatalf("login failed: %s", err)
+		return "", false, err
 	}
 
 	return r.GetToken(), r.GetIsAdminToken(), err

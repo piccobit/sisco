@@ -3,23 +3,22 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"sisco/internal/srpc"
-	"strconv"
-	"syscall"
-	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/cobra"
 	"sisco/ent"
 	"sisco/ent/area"
 	"sisco/ent/service"
 	"sisco/ent/tag"
 	"sisco/internal/cfg"
 	"sisco/internal/db"
+	"sisco/internal/srpc"
+	"strconv"
+	"syscall"
+	"time"
 )
 
 // type gRPCServer struct
