@@ -9,8 +9,18 @@ import (
 	"sisco/pb"
 )
 
-type ServiceInArea struct {
-	Service     string   `json:"service"`
+type Area struct {
+	Name        string `json:"area"`
+	Description string `json:"description"`
+}
+
+type Service struct {
+	Name        string `json:"service"`
+	Description string `json:"description"`
+}
+
+type ServiceExtended struct {
+	Name        string   `json:"service"`
 	Area        string   `json:"area"`
 	Description string   `json:"description"`
 	Host        string   `json:"host"`
@@ -19,24 +29,24 @@ type ServiceInArea struct {
 	Tags        []string ` json:"tags"`
 }
 
-func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName string) (*ServiceInArea, error) {
-	lsiac := pb.NewListServiceInAreaClient(c.grpcClient)
+func (c *Client) ListService(bearer string, serviceName string, areaName string) (*ServiceExtended, error) {
+	lsiac := pb.NewListServiceClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := lsiac.ListServiceInArea(ctx, &pb.ListServiceInAreaRequest{
+	r, err := lsiac.ListService(ctx, &pb.ListServiceRequest{
 		Bearer:  bearer,
 		Service: serviceName,
 		Area:    areaName,
 	})
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("adding area failed: %s", err))
+		return nil, errors.New(fmt.Sprintf("listing service in area failed: %v", err))
 	}
 
-	data := ServiceInArea{
-		Service:     r.GetService(),
+	data := ServiceExtended{
+		Name:        r.GetService(),
 		Area:        r.GetArea(),
 		Description: r.GetDescription(),
 		Host:        r.GetHost(),
@@ -48,7 +58,7 @@ func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName s
 	return &data, err
 }
 
-func (c *Client) ListServices(bearer string) (*[]string, error) {
+func (c *Client) ListServices(bearer string, areaName string) ([]*Service, error) {
 	lsiac := pb.NewListServicesClient(c.grpcClient)
 
 	// Contact the server and print out its response.
@@ -57,12 +67,50 @@ func (c *Client) ListServices(bearer string) (*[]string, error) {
 
 	r, err := lsiac.ListServices(ctx, &pb.ListServicesRequest{
 		Bearer: bearer,
+		Area:   areaName,
 	})
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("adding area failed: %s", err))
+		return nil, errors.New(fmt.Sprintf("listing services failed: %v", err))
 	}
 
-	data := r.GetServices()
+	var data []*Service
 
-	return &data, err
+	pbServices := r.GetServices()
+
+	for _, pbs := range pbServices {
+		d := Service{
+			Name:        pbs.GetName(),
+			Description: pbs.GetDescription(),
+		}
+		data = append(data, &d)
+	}
+
+	return data, err
+}
+
+func (c *Client) ListAreas(bearer string) ([]*Area, error) {
+	lsiac := pb.NewListAreasClient(c.grpcClient)
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	r, err := lsiac.ListAreas(ctx, &pb.ListAreasRequest{
+		Bearer: bearer,
+	})
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("listing areas failed: %v", err))
+	}
+
+	var data []*Area
+
+	for _, pba := range r.GetAreas() {
+		d := Area{
+			Name:        pba.GetName(),
+			Description: pba.GetDescription(),
+		}
+		data = append(data, &d)
+	}
+
+	return data, nil
 }

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"sisco/internal/crpc"
+	"sisco/internal/utils"
 
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
@@ -16,11 +18,12 @@ var (
 	debug   bool
 	pretty  bool
 	cfgFile string
+	token   string
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "sisco",
-	Short: "Lightweight Service Discovery",
+	Short: "Lightweight ServiceExtended Discovery",
 	Long: `sisco is a small and lightweight server providing the possibility to register services and
 to query for them.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -83,4 +86,15 @@ func execLogin(cmd *cobra.Command, args []string) {
 	})
 
 	fmt.Println(string(jsonBlob))
+}
+
+func getToken() {
+	if len(token) == 0 {
+		var ok bool
+
+		token, ok = os.LookupEnv("SISCO_TOKEN")
+		if !ok {
+			log.Fatalln(utils.JSONify(StatusCode{"NOT OK", "missing token"}, pretty))
+		}
+	}
 }

@@ -16,8 +16,9 @@ type server struct {
 	pb.UnimplementedRegisterServiceServer
 	pb.UnimplementedDeleteAreaServer
 	pb.UnimplementedDeleteServiceServer
-	pb.UnimplementedListServiceInAreaServer
+	pb.UnimplementedListServiceServer
 	pb.UnimplementedListServicesServer
+	pb.UnimplementedListAreasServer
 }
 
 type Server struct {
@@ -73,8 +74,9 @@ func (s *Server) Run() {
 	pb.RegisterRegisterServiceServer(s.grpcServer, &server{})
 	pb.RegisterDeleteAreaServer(s.grpcServer, &server{})
 	pb.RegisterDeleteServiceServer(s.grpcServer, &server{})
-	pb.RegisterListServiceInAreaServer(s.grpcServer, &server{})
+	pb.RegisterListServiceServer(s.grpcServer, &server{})
 	pb.RegisterListServicesServer(s.grpcServer, &server{})
+	pb.RegisterListAreasServer(s.grpcServer, &server{})
 
 	log.Printf("gRPC server listening at %v", lis.Addr())
 

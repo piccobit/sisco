@@ -6,11 +6,12 @@ import (
 	"log"
 	"sisco/internal/cfg"
 	"sisco/internal/crpc"
+	"sisco/internal/utils"
 )
 
 type StatusCode struct {
 	Status  string `json:"status"`
-	Message string `json:"message"`
+	Message any    `json:"message"`
 }
 type AuthTokenInfo struct {
 	Token        string `json:"token"`
@@ -69,9 +70,11 @@ var adminCmd = &cobra.Command{
 }
 
 func execAdminRegisterArea(cmd *cobra.Command, args []string) {
-	if len(args) != 3 {
+	if len(args) != 2 {
 		log.Fatalln(cmd.Usage())
 	}
+
+	getToken()
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
@@ -81,21 +84,23 @@ func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	err = rpcClient.RegisterArea(args[0], args[1], args[2])
+	err = rpcClient.RegisterArea(token, args[0], args[1])
 	if err == nil {
-		log.Println(StatusCode{"OK", ""})
+		log.Println(utils.JSONify(StatusCode{"OK", ""}, pretty))
 	} else {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 }
 
 func execAdminRegisterService(cmd *cobra.Command, args []string) {
-	if len(args) < 7 {
+	if len(args) < 6 {
 		log.Fatalln(cmd.Usage())
 	}
+
+	getToken()
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
@@ -105,21 +110,23 @@ func execAdminRegisterService(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	err = grpcClient.RegisterService(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7:]...)
+	err = grpcClient.RegisterService(token, args[0], args[1], args[2], args[3], args[4], args[5], args[6:]...)
 	if err == nil {
-		log.Println(StatusCode{"OK", ""})
+		log.Println(utils.JSONify(StatusCode{"OK", ""}, pretty))
 	} else {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 }
 
 func execAdminDeleteArea(cmd *cobra.Command, args []string) {
-	if len(args) != 2 {
+	if len(args) != 1 {
 		log.Fatalln(cmd.Usage())
 	}
+
+	getToken()
 
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
@@ -129,14 +136,14 @@ func execAdminDeleteArea(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
 	err = grpcClient.DeleteArea(args[0], args[1])
 	if err == nil {
-		log.Println(StatusCode{"OK", ""})
+		log.Println(utils.JSONify(StatusCode{"OK", ""}, pretty))
 	} else {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 }
 
@@ -145,6 +152,8 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 		log.Fatalln(cmd.Usage())
 	}
 
+	getToken()
+
 	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcClient, err := crpc.New(
@@ -153,13 +162,13 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 		crpc.TLSCertFile(cfg.Config.TLSCertFile),
 	)
 	if err != nil {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
 	err = grpcClient.DeleteService(args[0], args[1], args[2])
 	if err == nil {
-		log.Println(StatusCode{Status: "OK"})
+		log.Println(utils.JSONify(StatusCode{Status: "OK"}, pretty))
 	} else {
-		log.Fatalln(StatusCode{"NOT OK", err.Error()})
+		log.Fatalln(utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 }

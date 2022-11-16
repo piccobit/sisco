@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"sisco/internal/auth"
 	"sisco/internal/ldapconn"
 	"time"
@@ -20,11 +21,13 @@ func (c *Client) CheckToken(ctx context.Context, bearer string, isAdminToken boo
 	}
 
 	if int(time.Now().Sub(t.Created).Seconds()) > cfg.Config.TokenValidInSeconds {
+		err = errors.New("token is not valid anymore")
 		return false, err
 	}
 
 	if isAdminToken {
 		if !t.Admin {
+			err = errors.New("token is not an admin token")
 			return false, err
 		}
 	}
@@ -89,4 +92,8 @@ func (c *Client) QueryServicesInArea(ctx context.Context, areaName string) ([]*e
 		WithTags().
 		Order(ent.Asc(service.FieldID)).
 		All(ctx)
+}
+
+func (c *Client) QueryServices(ctx context.Context) ([]*ent.Service, error) {
+	return c.dbClient.Service.Query().WithTags().Order(ent.Asc(service.FieldID)).All(ctx)
 }

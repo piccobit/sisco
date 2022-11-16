@@ -4,6 +4,8 @@ option go_package = "github.com/piccobit/sisco/pb";
 
 package pb;
 
+// Login
+
 service Login {
   rpc Login (LoginRequest) returns (LoginReply) {}
 }
@@ -18,6 +20,8 @@ message LoginReply {
   bool isAdminToken = 2;
 }
 
+// RegisterArea
+
 service RegisterArea {
   rpc RegisterArea (RegisterAreaRequest) returns (RegisterAreaReply) {}
 }
@@ -30,6 +34,8 @@ message RegisterAreaRequest {
 
 message RegisterAreaReply {
 }
+
+// RegisterService
 
 service RegisterService {
   rpc RegisterService (RegisterServiceRequest) returns (RegisterServiceReply) {}
@@ -49,6 +55,8 @@ message RegisterServiceRequest {
 message RegisterServiceReply {
 }
 
+// DeleteArea
+
 service DeleteArea {
   rpc DeleteArea (DeleteAreaRequest) returns (DeleteAreaReply) {}
 }
@@ -60,6 +68,8 @@ message DeleteAreaRequest {
 
 message DeleteAreaReply {
 }
+
+// DeleteService
 
 service DeleteService {
   rpc DeleteService (DeleteServiceRequest) returns (DeleteServiceReply) {}
@@ -74,17 +84,19 @@ message DeleteServiceRequest {
 message DeleteServiceReply {
 }
 
-service ListServiceInArea {
-  rpc ListServiceInArea (ListServiceInAreaRequest) returns (ListServiceInAreaReply) {}
+// ListService
+
+service ListService {
+  rpc ListService (ListServiceRequest) returns (ListServiceReply) {}
 }
 
-message ListServiceInAreaRequest {
+message ListServiceRequest {
   string bearer = 1;
   string service = 2;
   string area = 3;
 }
 
-message ListServiceInAreaReply {
+message ListServiceReply {
   string service = 1;
   string area = 2;
   string description = 3;
@@ -94,14 +106,41 @@ message ListServiceInAreaReply {
   repeated string tags = 7;
 }
 
+// ListServices
+
 service ListServices {
   rpc ListServices (ListServicesRequest) returns (ListServicesReply) {}
 }
 
 message ListServicesRequest {
   string bearer = 1;
+  string area = 2;
+}
+
+message Service {
+  string name = 1;
+  string description = 2;
 }
 
 message ListServicesReply {
-  repeated string services = 1;
+  repeated Service services = 1;
+}
+
+// ListAreas
+
+service ListAreas {
+  rpc ListAreas (ListAreasRequest) returns (ListAreasReply) {}
+}
+
+message ListAreasRequest {
+  string bearer = 1;
+}
+
+message Area {
+  string name = 1;
+  string description = 2;
+}
+
+message ListAreasReply {
+  repeated Area areas = 1;
 }
