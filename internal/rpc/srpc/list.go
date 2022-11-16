@@ -2,7 +2,7 @@ package srpc
 
 import (
 	"context"
-	"sisco/pb"
+	"sisco/internal/rpc/pb"
 )
 
 func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*pb.ListServiceReply, error) {
@@ -13,13 +13,13 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		return &pb.ListServiceReply{}, err
 	}
 
-	se, err := dbConn.QueryServiceInArea(ctx, in.GetService(), in.GetArea())
+	se, err := dbConn.QueryServiceInArea(ctx, in.GetName(), in.GetArea())
 	if err != nil {
 		return &pb.ListServiceReply{}, err
 	}
 
 	return &pb.ListServiceReply{
-		Service:     in.GetService(),
+		Name:        in.GetName(),
 		Area:        in.GetArea(),
 		Description: se.Description,
 		Protocol:    se.Protocol,

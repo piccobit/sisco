@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"sisco/internal/cfg"
-	"sisco/internal/crpc"
 	"sisco/internal/exit"
+	"sisco/internal/rpc/crpc"
 	"sisco/internal/utils"
 )
 
@@ -62,13 +62,7 @@ func execLogin(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, cmd.Usage())
 	}
 
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
-
-	grpcClient, err := crpc.New(
-		crpc.ListenAddr(listenAddr),
-		crpc.UseTLS(cfg.Config.UseTLS),
-		crpc.TLSCertFile(cfg.Config.TLSCertFile),
-	)
+	grpcClient, err := crpc.Default()
 	if err != nil {
 		exit.Fatalln(1, err)
 	}

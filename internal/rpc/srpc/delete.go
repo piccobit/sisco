@@ -2,8 +2,7 @@ package srpc
 
 import (
 	"context"
-
-	"sisco/pb"
+	"sisco/internal/rpc/pb"
 )
 
 func (s *server) DeleteArea(ctx context.Context, in *pb.DeleteAreaRequest) (*pb.DeleteAreaReply, error) {

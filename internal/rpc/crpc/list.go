@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sisco/internal/rpc/pb"
 	"time"
-
-	"sisco/pb"
 )
 
 type Area struct {
@@ -30,23 +29,23 @@ type ServiceExtended struct {
 }
 
 func (c *Client) ListService(bearer string, serviceName string, areaName string) (*ServiceExtended, error) {
-	lsiac := pb.NewListServiceClient(c.grpcClient)
+	l := pb.NewListServiceClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := lsiac.ListService(ctx, &pb.ListServiceRequest{
-		Bearer:  bearer,
-		Service: serviceName,
-		Area:    areaName,
+	r, err := l.ListService(ctx, &pb.ListServiceRequest{
+		Bearer: bearer,
+		Name:   serviceName,
+		Area:   areaName,
 	})
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("listing service in area failed: %v", err))
 	}
 
 	data := ServiceExtended{
-		Name:        r.GetService(),
+		Name:        r.GetName(),
 		Area:        r.GetArea(),
 		Description: r.GetDescription(),
 		Host:        r.GetHost(),
@@ -59,13 +58,13 @@ func (c *Client) ListService(bearer string, serviceName string, areaName string)
 }
 
 func (c *Client) ListServices(bearer string, areaName string) ([]*Service, error) {
-	lsiac := pb.NewListServicesClient(c.grpcClient)
+	l := pb.NewListServicesClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := lsiac.ListServices(ctx, &pb.ListServicesRequest{
+	r, err := l.ListServices(ctx, &pb.ListServicesRequest{
 		Bearer: bearer,
 		Area:   areaName,
 	})
@@ -89,13 +88,13 @@ func (c *Client) ListServices(bearer string, areaName string) ([]*Service, error
 }
 
 func (c *Client) ListAreas(bearer string) ([]*Area, error) {
-	lsiac := pb.NewListAreasClient(c.grpcClient)
+	l := pb.NewListAreasClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := lsiac.ListAreas(ctx, &pb.ListAreasRequest{
+	r, err := l.ListAreas(ctx, &pb.ListAreasRequest{
 		Bearer: bearer,
 	})
 	if err != nil {

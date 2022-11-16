@@ -2,9 +2,8 @@ package crpc
 
 import (
 	"context"
+	"sisco/internal/rpc/pb"
 	"time"
-
-	"sisco/pb"
 )
 
 func (c *Client) Login(user string, password string) (string, bool, error) {

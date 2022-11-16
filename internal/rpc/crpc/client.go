@@ -1,9 +1,11 @@
 package crpc
 
 import (
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"sisco/internal/cfg"
 	"sisco/internal/exit"
 )
 
@@ -12,6 +14,21 @@ type Client struct {
 	listenAddr  string
 	useTLS      bool
 	tlsCertFile string
+}
+
+func Default() (*Client, error) {
+	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
+
+	rpcClient, err := New(
+		ListenAddr(listenAddr),
+		UseTLS(cfg.Config.UseTLS),
+		TLSCertFile(cfg.Config.TLSCertFile),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return rpcClient, nil
 }
 
 func New(opts ...func(*Client)) (*Client, error) {

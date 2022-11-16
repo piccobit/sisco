@@ -3,9 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"sisco/internal/cfg"
-	"sisco/internal/crpc"
 	"sisco/internal/exit"
+	"sisco/internal/rpc/crpc"
 	"sisco/internal/utils"
 )
 
@@ -75,13 +74,7 @@ func execAdminRegisterArea(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, cmd.Usage())
 	}
 
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
-
-	rpcClient, err := crpc.New(
-		crpc.ListenAddr(listenAddr),
-		crpc.UseTLS(cfg.Config.UseTLS),
-		crpc.TLSCertFile(cfg.Config.TLSCertFile),
-	)
+	rpcClient, err := crpc.Default()
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
@@ -99,18 +92,12 @@ func execAdminRegisterService(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, cmd.Usage())
 	}
 
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
-
-	grpcClient, err := crpc.New(
-		crpc.ListenAddr(listenAddr),
-		crpc.UseTLS(cfg.Config.UseTLS),
-		crpc.TLSCertFile(cfg.Config.TLSCertFile),
-	)
+	rpcClient, err := crpc.Default()
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	err = grpcClient.RegisterService(getToken(), args[0], args[1], args[2], args[3], args[4], args[5], args[6:]...)
+	err = rpcClient.RegisterService(getToken(), args[0], args[1], args[2], args[3], args[4], args[5], args[6:]...)
 	if err == nil {
 		fmt.Println(utils.JSONify(StatusCode{"OK", ""}, pretty))
 	} else {
@@ -123,18 +110,12 @@ func execAdminDeleteArea(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, cmd.Usage())
 	}
 
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
-
-	grpcClient, err := crpc.New(
-		crpc.ListenAddr(listenAddr),
-		crpc.UseTLS(cfg.Config.UseTLS),
-		crpc.TLSCertFile(cfg.Config.TLSCertFile),
-	)
+	rpcClient, err := crpc.Default()
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	err = grpcClient.DeleteArea(getToken(), args[0])
+	err = rpcClient.DeleteArea(getToken(), args[0])
 	if err == nil {
 		fmt.Println(utils.JSONify(StatusCode{"OK", ""}, pretty))
 	} else {
@@ -147,18 +128,12 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, cmd.Usage())
 	}
 
-	listenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
-
-	grpcClient, err := crpc.New(
-		crpc.ListenAddr(listenAddr),
-		crpc.UseTLS(cfg.Config.UseTLS),
-		crpc.TLSCertFile(cfg.Config.TLSCertFile),
-	)
+	rpcClient, err := crpc.Default()
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	err = grpcClient.DeleteService(getToken(), args[0], args[1])
+	err = rpcClient.DeleteService(getToken(), args[0], args[1])
 	if err == nil {
 		fmt.Println(utils.JSONify(StatusCode{Status: "OK"}, pretty))
 	} else {

@@ -1,13 +1,12 @@
 package srpc
 
 import (
-	"log"
-	"net"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"log"
+	"net"
 	"sisco/internal/db"
-	"sisco/pb"
+	"sisco/internal/rpc/pb"
 )
 
 type server struct {

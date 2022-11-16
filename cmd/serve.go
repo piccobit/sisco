@@ -16,7 +16,7 @@ import (
 	"sisco/internal/cfg"
 	"sisco/internal/db"
 	"sisco/internal/exit"
-	"sisco/internal/srpc"
+	"sisco/internal/rpc/srpc"
 	"strconv"
 	"syscall"
 	"time"

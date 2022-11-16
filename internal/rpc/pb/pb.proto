@@ -92,12 +92,12 @@ service ListService {
 
 message ListServiceRequest {
   string bearer = 1;
-  string service = 2;
+  string name = 2;
   string area = 3;
 }
 
 message ListServiceReply {
-  string service = 1;
+  string name = 1;
   string area = 2;
   string description = 3;
   string protocol = 4;

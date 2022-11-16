@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sisco/internal/rpc/pb"
 	"time"
-
-	"sisco/pb"
 )
 
 func (c *Client) RegisterArea(bearer string, area string, description string) error {

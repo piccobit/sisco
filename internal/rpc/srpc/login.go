@@ -2,10 +2,9 @@ package srpc
 
 import (
 	"context"
-
 	"sisco/internal/cfg"
 	"sisco/internal/ldapconn"
-	"sisco/pb"
+	"sisco/internal/rpc/pb"
 )
 
 func (s *server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginReply, error) {

@@ -2,8 +2,7 @@ package srpc
 
 import (
 	"context"
-
-	"sisco/pb"
+	"sisco/internal/rpc/pb"
 )
 
 func (s *server) RegisterArea(ctx context.Context, in *pb.RegisterAreaRequest) (*pb.RegisterAreaReply, error) {
