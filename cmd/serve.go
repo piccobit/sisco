@@ -15,6 +15,7 @@ import (
 	"sisco/ent/tag"
 	"sisco/internal/cfg"
 	"sisco/internal/db"
+	"sisco/internal/exit"
 	"sisco/internal/srpc"
 	"strconv"
 	"syscall"
@@ -46,7 +47,7 @@ func serve() {
 
 	dbConn, err = db.New()
 	if err != nil {
-		log.Fatalf("failed opening connection to postgres: %v", err)
+		exit.Fatalf(1, "failed opening connection to database: %v", err)
 	}
 	defer dbConn.Close()
 
@@ -57,7 +58,7 @@ func serve() {
 	router := gin.Default()
 	err = router.SetTrustedProxies(cfg.Config.TrustedProxies)
 	if err != nil {
-		log.Fatalf("failed setting trusted proxies: %v", err)
+		exit.Fatalf(1, "failed setting trusted proxies: %v", err)
 	}
 
 	v1Group := router.Group("/api/v1")
@@ -138,11 +139,11 @@ func serve() {
 func httpServer(srv *http.Server) {
 	if cfg.Config.UseTLS {
 		if err := srv.ListenAndServeTLS(cfg.Config.TLSCertFile, cfg.Config.TLSKeyFile); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("failed listening: %v", err)
+			exit.Fatalf(1, "failed listening: %v", err)
 		}
 	} else {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("failed listening: %v", err)
+			exit.Fatalf(1, "failed listening: %v", err)
 		}
 	}
 
