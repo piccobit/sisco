@@ -18,6 +18,12 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		return &pb.ListServiceReply{}, err
 	}
 
+	var tags []string
+
+	for _, tag := range se.Edges.Tags {
+		tags = append(tags, tag.Name)
+	}
+
 	return &pb.ListServiceReply{
 		Name:        in.GetName(),
 		Area:        in.GetArea(),
@@ -25,7 +31,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		Protocol:    se.Protocol,
 		Host:        se.Host,
 		Port:        se.Port,
-		Tags:        nil,
+		Tags:        tags,
 	}, nil
 }
 
