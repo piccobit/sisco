@@ -424,7 +424,7 @@ Authentication and authorization is done by executing the following command:
 ```shell
 sisco login <user> <password>
 ```
-The gRPC call is answered with a bearer token which you have to use in any other gRPC call. The token might be provided either as command line option or by using an environment variable called `SISCO_TOKEN``. Depending on your group membership this might grant you also administrative access to the gRPC interface.
+The gRPC call is answered with a bearer token which you have to use in any other gRPC call. The token might be provided either as command line option or by using an environment variable called `SISCO_TOKEN`. Depending on your group membership this might grant you also administrative access to the gRPC interface.
 ### Register an Area
 
 To register a new **area** the following needs to be executed:
