@@ -30,13 +30,13 @@ var (
 )
 
 var migrateCmd = &cobra.Command{
-	Use:   "migrate <command>",
+	Use:   "migrate [command]",
 	Short: "Support database migration",
 	Long:  `Supports the database migration using files in the migration directory.`,
 }
 
 var migrateGenerateCmd = &cobra.Command{
-	Use:   "generate <dev-database-name> <migration-name>",
+	Use:   "generate [dev database name] [migration name]",
 	Short: "Generate database migration files",
 	Long: `Generates the database migration files in the base migration directory using the provided
 empty 'dev'' database. The 'dev' database shall use the same permissions as the productive database.`,
@@ -46,7 +46,7 @@ empty 'dev'' database. The 'dev' database shall use the same permissions as the 
 }
 
 var migrateApplyCmd = &cobra.Command{
-	Use:   "apply [<num-migrations>]",
+	Use:   "apply [num migrations]",
 	Short: "Apply database migration files",
 	Long:  `Apply the specified number of migration files in the database migrations directory.`,
 	Run: func(cmd *cobra.Command, args []string) {

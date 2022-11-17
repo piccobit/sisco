@@ -30,9 +30,9 @@ to query for them.`,
 }
 
 var loginCmd = &cobra.Command{
-	Use:   "login <user> <password>",
+	Use:   "login [user] [password]",
 	Short: "Login to sisco",
-	Long:  `Login to Sisco's' gRPC-based administration interface.`,
+	Long:  `Login to sisco's gRPC-based administration interface.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		execLogin(cmd, args)
 	},

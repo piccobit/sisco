@@ -11,13 +11,13 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list <command>",
+	Use:   "list [command]",
 	Short: "List components",
 	Long:  `List the specified components.`,
 }
 
 var listServiceCmd = &cobra.Command{
-	Use:   "service <service-name> <area-name>",
+	Use:   "service [service name] [area name]",
 	Short: "List service in area",
 	Long:  `List specified service in the specified area.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -26,7 +26,7 @@ var listServiceCmd = &cobra.Command{
 }
 
 var listServicesCmd = &cobra.Command{
-	Use:   "services <area-name>",
+	Use:   "services [area name]",
 	Short: "List services",
 	Long:  `List all services in a specified area.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -73,7 +73,7 @@ func execListService(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	l, err := rpcClient.ListService(getToken(), args[0], args[1])
+	l, err := rpcClient.ListServiceInArea(getToken(), args[0], args[1])
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}

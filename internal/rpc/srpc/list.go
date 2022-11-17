@@ -5,17 +5,17 @@ import (
 	"sisco/internal/rpc/pb"
 )
 
-func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*pb.ListServiceReply, error) {
+func (s *server) ListService(ctx context.Context, in *pb.ListServiceInAreaRequest) (*pb.ListServiceInAreaReply, error) {
 	var err error
 
 	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
 	if !tokenIsValid || err != nil {
-		return &pb.ListServiceReply{}, err
+		return &pb.ListServiceInAreaReply{}, err
 	}
 
 	se, err := dbConn.QueryServiceInArea(ctx, in.GetName(), in.GetArea())
 	if err != nil {
-		return &pb.ListServiceReply{}, err
+		return &pb.ListServiceInAreaReply{}, err
 	}
 
 	var tags []string
@@ -24,7 +24,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		tags = append(tags, tag.Name)
 	}
 
-	return &pb.ListServiceReply{
+	return &pb.ListServiceInAreaReply{
 		Name:        in.GetName(),
 		Area:        in.GetArea(),
 		Description: se.Description,

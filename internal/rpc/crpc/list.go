@@ -32,14 +32,14 @@ type Tag struct {
 	Name string `json:"tag"`
 }
 
-func (c *Client) ListService(bearer string, serviceName string, areaName string) (*ServiceExtended, error) {
-	l := pb.NewListServiceClient(c.grpcClient)
+func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName string) (*ServiceExtended, error) {
+	l := pb.NewListServiceInAreaClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := l.ListService(ctx, &pb.ListServiceRequest{
+	r, err := l.ListServiceInArea(ctx, &pb.ListServiceInAreaRequest{
 		Bearer: bearer,
 		Name:   serviceName,
 		Area:   areaName,
