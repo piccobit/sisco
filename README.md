@@ -60,7 +60,7 @@ tokenValidInSeconds: 1800
 To show the integrated help just call `sisco` with the `help` command:
 
 ```shell
-$ sisco help
+$ sisco --help
 sisco is a small and lightweight server providing the possibility to register services and
 to query for them.
 
@@ -71,6 +71,8 @@ Available Commands:
   admin       Administrate sisco
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
+  list        List components
+  login       Login to sisco
   migrate     Support database migration
   serve       Start server
   version     Print the version of sisco
@@ -413,3 +415,104 @@ Example `cURL` call (with prettied output):
 $ curl -H "Bearer: <token>" localhost:9999/api/v1/admin/delete/tag/<tag>
 ```
 
+## gRPC Endpoints
+
+### Authentication & Authorization
+
+Authentication and authorization is done by executing the following command:
+
+```shell
+sisco login <user> <password>
+```
+The gRPC call is answered with a bearer token which you have to use in any other gRPC call. The token might be provided either as command line option or by using an environment variable called `SISCO_TOKEN``. Depending on your group membership this might grant you also administrative access to the gRPC interface.
+### Register an Area
+
+To register a new **area** the following needs to be executed:
+
+```shell
+```
+
+### Register a Service
+
+To register a new **service** in an already existing **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/service/<service-name>/in/<area-name>`:
+
+Example `cURL` call:
+
+```shell
+```
+
+### Query a Service
+
+To query for a service the REST API endpoint `/api/v1/get/service/<service-name>/in/<area-name>` is available:
+
+Example `cURL` call:
+
+```shell
+```
+
+### List Areas
+
+To list all known **areas** the REST API endpoint `/api/v1/list/areas` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
+
+### List Services
+
+#### List Services in Area
+
+To list all known **services** in a specific **area** the REST API endpoint `/api/v1/list/services/in/<area-name>` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
+
+#### List Services with Tag
+
+To list all known **services** with a specific **tag** the REST API endpoint `/api/v1/list/services/with/<tag-name>` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
+
+### List Tags
+
+To list all known **tags** the REST API endpoint `/api/v1/list/tags` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
+
+### Delete Area
+
+To delete an area the REST API endpoint `/api/v1/admin/delete/area/<area>` is available:
+
+***Note:*** An area can be only deleted if it does not contain any services.
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
+
+### Delete Service
+
+To delete a service the REST API endpoint `/api/v1/admin/delete/service/<service>/in/<area>` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
+
+### Delete Tag
+
+To delete a tag the REST API endpoint `/api/v1/admin/delete/tag/<tag>` is available:
+
+Example `cURL` call (with prettied output):
+
+```shell
+```
