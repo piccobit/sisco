@@ -144,3 +144,21 @@ message Area {
 message ListAreasReply {
   repeated Area areas = 1;
 }
+
+// ListTags
+
+service ListTags {
+  rpc ListTags (ListTagsRequest) returns (ListTagsReply) {}
+}
+
+message ListTagsRequest {
+  string bearer = 1;
+}
+
+message Tag {
+  string name = 1;
+}
+
+message ListTagsReply {
+  repeated Tag tags = 1;
+}

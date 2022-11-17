@@ -9,23 +9,27 @@ import (
 )
 
 type Area struct {
-	Name        string `json:"area"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
 type Service struct {
-	Name        string `json:"service"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
 type ServiceExtended struct {
-	Name        string   `json:"service"`
+	Name        string   `json:"name"`
 	Area        string   `json:"area"`
 	Description string   `json:"description"`
 	Host        string   `json:"host"`
 	Protocol    string   `json:"protocol"`
 	Port        string   `json:"port"`
 	Tags        []string ` json:"tags"`
+}
+
+type Tag struct {
+	Name string `json:"tag"`
 }
 
 func (c *Client) ListService(bearer string, serviceName string, areaName string) (*ServiceExtended, error) {
@@ -107,6 +111,32 @@ func (c *Client) ListAreas(bearer string) ([]*Area, error) {
 		d := Area{
 			Name:        pba.GetName(),
 			Description: pba.GetDescription(),
+		}
+		data = append(data, &d)
+	}
+
+	return data, nil
+}
+
+func (c *Client) ListTags(bearer string) ([]*Tag, error) {
+	l := pb.NewListTagsClient(c.grpcClient)
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	r, err := l.ListTags(ctx, &pb.ListTagsRequest{
+		Bearer: bearer,
+	})
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("listing tags failed: %v", err))
+	}
+
+	var data []*Tag
+
+	for _, pba := range r.GetTags() {
+		d := Tag{
+			Name: pba.GetName(),
 		}
 		data = append(data, &d)
 	}

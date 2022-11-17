@@ -43,10 +43,20 @@ var listAreasCmd = &cobra.Command{
 	},
 }
 
+var listTagsCmd = &cobra.Command{
+	Use:   "tags",
+	Short: "List tags",
+	Long:  `List all tags.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		execListTags(cmd, args)
+	},
+}
+
 func init() {
 	listCmd.AddCommand(listServiceCmd)
 	listCmd.AddCommand(listServicesCmd)
 	listCmd.AddCommand(listAreasCmd)
+	listCmd.AddCommand(listTagsCmd)
 
 	listCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Auth token")
 
@@ -100,6 +110,24 @@ func execListAreas(cmd *cobra.Command, args []string) {
 	}
 
 	l, err := rpcClient.ListAreas(getToken())
+	if err != nil {
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+	}
+
+	fmt.Println(utils.JSONify(StatusCode{"OK", l}, pretty))
+}
+
+func execListTags(cmd *cobra.Command, args []string) {
+	if len(args) != 0 {
+		exit.Fatalln(1, cmd.Usage())
+	}
+
+	rpcClient, err := crpc.Default()
+	if err != nil {
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+	}
+
+	l, err := rpcClient.ListTags(getToken())
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}

@@ -51,11 +51,11 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 	var data []*pb.Service
 
 	for _, d := range r {
-		se := pb.Service{
+		e := pb.Service{
 			Name:        d.Name,
 			Description: d.Description,
 		}
-		data = append(data, &se)
+		data = append(data, &e)
 	}
 
 	return &pb.ListServicesReply{
@@ -79,14 +79,41 @@ func (s *server) ListAreas(ctx context.Context, in *pb.ListAreasRequest) (*pb.Li
 	var data []*pb.Area
 
 	for _, d := range r {
-		se := pb.Area{
+		e := pb.Area{
 			Name:        d.Name,
 			Description: d.Description,
 		}
-		data = append(data, &se)
+		data = append(data, &e)
 	}
 
 	return &pb.ListAreasReply{
 		Areas: data,
+	}, nil
+}
+
+func (s *server) ListTags(ctx context.Context, in *pb.ListTagsRequest) (*pb.ListTagsReply, error) {
+	var err error
+
+	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
+	if !tokenIsValid || err != nil {
+		return &pb.ListTagsReply{}, err
+	}
+
+	r, err := dbConn.QueryTags(ctx)
+	if err != nil {
+		return &pb.ListTagsReply{}, err
+	}
+
+	var data []*pb.Tag
+
+	for _, d := range r {
+		e := pb.Tag{
+			Name: d.Name,
+		}
+		data = append(data, &e)
+	}
+
+	return &pb.ListTagsReply{
+		Tags: data,
 	}, nil
 }

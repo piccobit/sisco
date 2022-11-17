@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"sisco/ent/tag"
 	"sisco/internal/auth"
 	"sisco/internal/ldapconn"
 	"time"
@@ -96,4 +97,8 @@ func (c *Client) QueryServicesInArea(ctx context.Context, areaName string) ([]*e
 
 func (c *Client) QueryServices(ctx context.Context) ([]*ent.Service, error) {
 	return c.dbClient.Service.Query().WithTags().Order(ent.Asc(service.FieldID)).All(ctx)
+}
+
+func (c *Client) QueryTags(ctx context.Context) ([]*ent.Tag, error) {
+	return c.dbClient.Tag.Query().Order(ent.Asc(tag.FieldName)).All(ctx)
 }

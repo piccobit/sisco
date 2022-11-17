@@ -705,3 +705,89 @@ var ListAreas_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "pb/pb.proto",
 }
+
+// ListTagsClient is the client API for ListTags service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ListTagsClient interface {
+	ListTags(ctx context.Context, in *ListTagsRequest, opts ...grpc.CallOption) (*ListTagsReply, error)
+}
+
+type listTagsClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewListTagsClient(cc grpc.ClientConnInterface) ListTagsClient {
+	return &listTagsClient{cc}
+}
+
+func (c *listTagsClient) ListTags(ctx context.Context, in *ListTagsRequest, opts ...grpc.CallOption) (*ListTagsReply, error) {
+	out := new(ListTagsReply)
+	err := c.cc.Invoke(ctx, "/pb.ListTags/ListTags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListTagsServer is the server API for ListTags service.
+// All implementations must embed UnimplementedListTagsServer
+// for forward compatibility
+type ListTagsServer interface {
+	ListTags(context.Context, *ListTagsRequest) (*ListTagsReply, error)
+	mustEmbedUnimplementedListTagsServer()
+}
+
+// UnimplementedListTagsServer must be embedded to have forward compatible implementations.
+type UnimplementedListTagsServer struct {
+}
+
+func (UnimplementedListTagsServer) ListTags(context.Context, *ListTagsRequest) (*ListTagsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTags not implemented")
+}
+func (UnimplementedListTagsServer) mustEmbedUnimplementedListTagsServer() {}
+
+// UnsafeListTagsServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ListTagsServer will
+// result in compilation errors.
+type UnsafeListTagsServer interface {
+	mustEmbedUnimplementedListTagsServer()
+}
+
+func RegisterListTagsServer(s grpc.ServiceRegistrar, srv ListTagsServer) {
+	s.RegisterService(&ListTags_ServiceDesc, srv)
+}
+
+func _ListTags_ListTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ListTagsServer).ListTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.ListTags/ListTags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ListTagsServer).ListTags(ctx, req.(*ListTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ListTags_ServiceDesc is the grpc.ServiceDesc for ListTags service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ListTags_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.ListTags",
+	HandlerType: (*ListTagsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListTags",
+			Handler:    _ListTags_ListTags_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pb/pb.proto",
+}
