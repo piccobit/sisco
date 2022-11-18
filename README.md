@@ -23,8 +23,8 @@
     * [Authentication & Authorization](#authentication--authorization-1)
     * [Register an Area](#register-an-area-1)
     * [Register a Service](#register-a-service-1)
-    * [Query a Service](#query-a-service-1)
     * [List Areas](#list-areas-1)
+    * [List Service](#list-service)
     * [List Services](#list-services-1)
     * [List Services in Area](#list-services-in-area-1)
     * [List Services with Tag](#list-services-with-tag-1)
@@ -52,9 +52,9 @@ gRPCPort: 8888
 dbType: "postgres"
 dbHost: "localhost"
 dbPort: 5432
-dbName: "[your-db-name]"
-dbUser: "[your-db-user]"
-dbPassword: "[your-db-password]"
+dbName: "[your DB name]"
+dbUser: "[your DB user]"
+dbPassword: "[your DB password]"
 dbSSLMode: "disable"
 ldapURL: "ldap://localhost:3893"
 ldapBaseDN: "DC=example,DC=com"
@@ -150,7 +150,7 @@ The REST API call is answered with a bearer token which you have to use in any o
 
 ### Register an Area
 
-To register a new **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/area/[area-name]`:
+To register a new **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/area/[area name]`:
 
 Example `register-area.json` file:
 
@@ -163,14 +163,14 @@ Example `register-area.json` file:
 Example `cURL` call:
 
 ```shell
-$ curl -X POST -H "Bearer: [token]" --data @register-area.json localhost:9999/api/v1/register/area/[area-name]
+$ curl -X POST -H "Bearer: [token]" --data @register-area.json localhost:9999/api/v1/register/area/[area name]
 
-{"area":{"id":42,"name":"[area-name]","description":"Area description","edges":{}}}
+{"area":{"id":42,"name":"[area name]","description":"Area description","edges":{}}}
 ```
 
 ### Register a Service
 
-To register a new **service** in an already existing **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/service/[service-name]/in/[area-name]`:
+To register a new **service** in an already existing **area** the following JSON data needs to be posted to the REST API endpoint `/api/v1/admin/register/service/[service name]/in/[area name]`:
 
 Example `register-service.json` file:
 
@@ -187,21 +187,21 @@ Example `register-service.json` file:
 Example `cURL` call:
 
 ```shell
-$ curl -X POST -H "Bearer: [token]" --data @register-area.json localhost:9999/api/v1/register/service/[service-name]/in/[area-name]
+$ curl -X POST -H "Bearer: [token]" --data @register-area.json localhost:9999/api/v1/register/service/[service name]/in/[area name]
 
-{"area":"[area-name]","service":{"id":42,"name":"[service-name]","description":"Service description","protocol":"Service protocol","host":"Service host","port":"Service port","edges":{}}}%
+{"area":"[area name]","service":{"id":42,"name":"[service name]","description":"Service description","protocol":"Service protocol","host":"Service host","port":"Service port","edges":{}}}%
 ```
 
 ### Query a Service
 
-To query for a service the REST API endpoint `/api/v1/get/service/[service-name]/in/[area-name]` is available:
+To query for a service the REST API endpoint `/api/v1/get/service/[service name]/in/[area name]` is available:
 
 Example `cURL` call:
 
 ```shell
-$ curl -H "Bearer: [token]" localhost:9999/api/v1/get/service/[service-name]/in/[area-name]
+$ curl -H "Bearer: [token]" localhost:9999/api/v1/get/service/[service name]/in/[area name]
 
-{"id":42,"name":"[service-name]","description":"Service description","protocol":"Service protocol","host":"Service host","port":"Service port","edges":{}}%
+{"id":42,"name":"[service name]","description":"Service description","protocol":"Service protocol","host":"Service host","port":"Service port","edges":{}}%
 ```
 
 ### List Areas
@@ -254,12 +254,12 @@ $ curl -H "Bearer: [token]" localhost:9999/api/v1/list/areas
 
 #### List Services in Area
 
-To list all known **services** in a specific **area** the REST API endpoint `/api/v1/list/services/in/[area-name]` is available:
+To list all known **services** in a specific **area** the REST API endpoint `/api/v1/list/services/in/[area name]` is available:
 
 Example `cURL` call (with prettied output):
 
 ```shell
-$ curl -H "Bearer: [token]" localhost:9999/api/v1/list/services/in/[area-name]
+$ curl -H "Bearer: [token]" localhost:9999/api/v1/list/services/in/[area name]
 
 [
   {
@@ -298,12 +298,12 @@ $ curl -H "Bearer: [token]" localhost:9999/api/v1/list/services/in/[area-name]
 
 #### List Services with Tag
 
-To list all known **services** with a specific **tag** the REST API endpoint `/api/v1/list/services/with/[tag-name]` is available:
+To list all known **services** with a specific **tag** the REST API endpoint `/api/v1/list/services/with/[tag name]` is available:
 
 Example `cURL` call (with prettied output):
 
 ```shell
-$ curl -H "Bearer: [token]" localhost:9999/api/v1/list/services/in/[area-name]
+$ curl -H "Bearer: [token]" localhost:9999/api/v1/list/services/in/[area name]
 
 [
   {
@@ -456,13 +456,6 @@ To register a new **service** in an already existing **area** the following comm
 $ sisco admin register service [service name] [area name] [description] [protocol] [host] [port] [tag 1] ... [tag N]
 ```
 
-### Query a Service
-
-To query for a service the following command needs to be executed:
-
-```shell
-```
-
 ### List Areas
 
 To list all **areas** the following command needs to be executed:
@@ -471,20 +464,28 @@ To list all **areas** the following command needs to be executed:
 $ sisco list areas
 ```
 
-### List Services
+### List Service
 
-To list all **services** in the specified **area** the following command needs to be executed:
+To list the **service** in a specific **area** the following command needs to be executed:
 
 ```shell
-$ sisco list services [area name]
+$ sisco list service [service name] [area name]
+```
+
+### List Services
+
+To list all **services** the following command needs to be executed:
+
+```shell
+$ sisco list services
 ```
 
 ### List Services in Area
 
-To list the **services** in the specific **area** the following command needs to be executed:
+To list the **services** in a specific **area** the following command needs to be executed:
 
 ```shell
-$ sisco list service [service-name] [area-name]
+$ sisco list services --in-area [area name]
 ```
 
 ### List Services with Tag
@@ -492,43 +493,39 @@ $ sisco list service [service-name] [area-name]
 To list all **services** with a specific **tag** the following command needs to be executed:
 
 ```shell
-$ sisco list 
+$ sisco list services --with-tag [tag name]
 ```
 
 ### List Tags
 
 To list all known **tags** the following command needs to be executed:
 
-Example `cURL` call (with prettied output):
-
 ```shell
+$ sisco list tags
 ```
 
 ### Delete Area
 
-To delete an area the following command needs to be executed:
+To delete an **area** the following command needs to be executed:
 
 ***Note:*** An area can be only deleted if it does not contain any services.
 
-Example `cURL` call (with prettied output):
-
 ```shell
+$ sisco admin delete area [area name]
 ```
 
 ### Delete Service
 
-To delete a service the REST API endpoint `/api/v1/admin/delete/service/[service]/in/[area]` is available:
-
-Example `cURL` call (with prettied output):
+To delete a **service** the following command needs to be executed:
 
 ```shell
+$ sisco admin delete service [service name]
 ```
 
 ### Delete Tag
 
-To delete a tag the REST API endpoint `/api/v1/admin/delete/tag/[tag]` is available:
-
-Example `cURL` call (with prettied output):
+To delete a **tag** the following command needs to be executed:
 
 ```shell
+$ sisco admin delete tag [tag name]
 ```
