@@ -28,6 +28,8 @@ var (
 		{Name: "protocol", Type: field.TypeString},
 		{Name: "host", Type: field.TypeString},
 		{Name: "port", Type: field.TypeString},
+		{Name: "available", Type: field.TypeBool, Default: false},
+		{Name: "heartbeat", Type: field.TypeTime},
 		{Name: "area_services", Type: field.TypeInt, Nullable: true},
 	}
 	// ServicesTable holds the schema information for the "services" table.
@@ -38,7 +40,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "services_areas_services",
-				Columns:    []*schema.Column{ServicesColumns[6]},
+				Columns:    []*schema.Column{ServicesColumns[8]},
 				RefColumns: []*schema.Column{AreasColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

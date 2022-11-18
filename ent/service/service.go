@@ -2,6 +2,10 @@
 
 package service
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the service type in the database.
 	Label = "service"
@@ -17,6 +21,10 @@ const (
 	FieldHost = "host"
 	// FieldPort holds the string denoting the port field in the database.
 	FieldPort = "port"
+	// FieldAvailable holds the string denoting the available field in the database.
+	FieldAvailable = "available"
+	// FieldHeartbeat holds the string denoting the heartbeat field in the database.
+	FieldHeartbeat = "heartbeat"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
 	// EdgeArea holds the string denoting the area edge name in mutations.
@@ -45,6 +53,8 @@ var Columns = []string{
 	FieldProtocol,
 	FieldHost,
 	FieldPort,
+	FieldAvailable,
+	FieldHeartbeat,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "services"
@@ -77,4 +87,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultDescription holds the default value on creation for the "description" field.
 	DefaultDescription string
+	// DefaultAvailable holds the default value on creation for the "available" field.
+	DefaultAvailable bool
+	// DefaultHeartbeat holds the default value on creation for the "heartbeat" field.
+	DefaultHeartbeat time.Time
 )

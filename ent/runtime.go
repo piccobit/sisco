@@ -19,6 +19,14 @@ func init() {
 	serviceDescDescription := serviceFields[1].Descriptor()
 	// service.DefaultDescription holds the default value on creation for the description field.
 	service.DefaultDescription = serviceDescDescription.Default.(string)
+	// serviceDescAvailable is the schema descriptor for available field.
+	serviceDescAvailable := serviceFields[5].Descriptor()
+	// service.DefaultAvailable holds the default value on creation for the available field.
+	service.DefaultAvailable = serviceDescAvailable.Default.(bool)
+	// serviceDescHeartbeat is the schema descriptor for heartbeat field.
+	serviceDescHeartbeat := serviceFields[6].Descriptor()
+	// service.DefaultHeartbeat holds the default value on creation for the heartbeat field.
+	service.DefaultHeartbeat = serviceDescHeartbeat.Default.(time.Time)
 	tokenFields := schema.Token{}.Fields()
 	_ = tokenFields
 	// tokenDescCreated is the schema descriptor for created field.

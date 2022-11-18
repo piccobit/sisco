@@ -9,6 +9,7 @@ import (
 	"sisco/ent/area"
 	"sisco/ent/service"
 	"sisco/ent/tag"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -56,6 +57,34 @@ func (sc *ServiceCreate) SetHost(s string) *ServiceCreate {
 // SetPort sets the "port" field.
 func (sc *ServiceCreate) SetPort(s string) *ServiceCreate {
 	sc.mutation.SetPort(s)
+	return sc
+}
+
+// SetAvailable sets the "available" field.
+func (sc *ServiceCreate) SetAvailable(b bool) *ServiceCreate {
+	sc.mutation.SetAvailable(b)
+	return sc
+}
+
+// SetNillableAvailable sets the "available" field if the given value is not nil.
+func (sc *ServiceCreate) SetNillableAvailable(b *bool) *ServiceCreate {
+	if b != nil {
+		sc.SetAvailable(*b)
+	}
+	return sc
+}
+
+// SetHeartbeat sets the "heartbeat" field.
+func (sc *ServiceCreate) SetHeartbeat(t time.Time) *ServiceCreate {
+	sc.mutation.SetHeartbeat(t)
+	return sc
+}
+
+// SetNillableHeartbeat sets the "heartbeat" field if the given value is not nil.
+func (sc *ServiceCreate) SetNillableHeartbeat(t *time.Time) *ServiceCreate {
+	if t != nil {
+		sc.SetHeartbeat(*t)
+	}
 	return sc
 }
 
@@ -174,6 +203,14 @@ func (sc *ServiceCreate) defaults() {
 		v := service.DefaultDescription
 		sc.mutation.SetDescription(v)
 	}
+	if _, ok := sc.mutation.Available(); !ok {
+		v := service.DefaultAvailable
+		sc.mutation.SetAvailable(v)
+	}
+	if _, ok := sc.mutation.Heartbeat(); !ok {
+		v := service.DefaultHeartbeat
+		sc.mutation.SetHeartbeat(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -189,6 +226,12 @@ func (sc *ServiceCreate) check() error {
 	}
 	if _, ok := sc.mutation.Port(); !ok {
 		return &ValidationError{Name: "port", err: errors.New(`ent: missing required field "Service.port"`)}
+	}
+	if _, ok := sc.mutation.Available(); !ok {
+		return &ValidationError{Name: "available", err: errors.New(`ent: missing required field "Service.available"`)}
+	}
+	if _, ok := sc.mutation.Heartbeat(); !ok {
+		return &ValidationError{Name: "heartbeat", err: errors.New(`ent: missing required field "Service.heartbeat"`)}
 	}
 	return nil
 }
@@ -236,6 +279,14 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Port(); ok {
 		_spec.SetField(service.FieldPort, field.TypeString, value)
 		_node.Port = value
+	}
+	if value, ok := sc.mutation.Available(); ok {
+		_spec.SetField(service.FieldAvailable, field.TypeBool, value)
+		_node.Available = value
+	}
+	if value, ok := sc.mutation.Heartbeat(); ok {
+		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
+		_node.Heartbeat = value
 	}
 	if nodes := sc.mutation.TagsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

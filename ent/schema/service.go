@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // Service holds the schema definition for the Service entity.
@@ -19,6 +20,8 @@ func (Service) Fields() []ent.Field {
 		field.String("protocol"),
 		field.String("host"),
 		field.String("port"),
+		field.Bool("available").Default(false),
+		field.Time("heartbeat").Default(time.Now()),
 	}
 }
 

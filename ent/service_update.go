@@ -10,6 +10,7 @@ import (
 	"sisco/ent/predicate"
 	"sisco/ent/service"
 	"sisco/ent/tag"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -70,6 +71,34 @@ func (su *ServiceUpdate) SetHost(s string) *ServiceUpdate {
 // SetPort sets the "port" field.
 func (su *ServiceUpdate) SetPort(s string) *ServiceUpdate {
 	su.mutation.SetPort(s)
+	return su
+}
+
+// SetAvailable sets the "available" field.
+func (su *ServiceUpdate) SetAvailable(b bool) *ServiceUpdate {
+	su.mutation.SetAvailable(b)
+	return su
+}
+
+// SetNillableAvailable sets the "available" field if the given value is not nil.
+func (su *ServiceUpdate) SetNillableAvailable(b *bool) *ServiceUpdate {
+	if b != nil {
+		su.SetAvailable(*b)
+	}
+	return su
+}
+
+// SetHeartbeat sets the "heartbeat" field.
+func (su *ServiceUpdate) SetHeartbeat(t time.Time) *ServiceUpdate {
+	su.mutation.SetHeartbeat(t)
+	return su
+}
+
+// SetNillableHeartbeat sets the "heartbeat" field if the given value is not nil.
+func (su *ServiceUpdate) SetNillableHeartbeat(t *time.Time) *ServiceUpdate {
+	if t != nil {
+		su.SetHeartbeat(*t)
+	}
 	return su
 }
 
@@ -229,6 +258,12 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Port(); ok {
 		_spec.SetField(service.FieldPort, field.TypeString, value)
 	}
+	if value, ok := su.mutation.Available(); ok {
+		_spec.SetField(service.FieldAvailable, field.TypeBool, value)
+	}
+	if value, ok := su.mutation.Heartbeat(); ok {
+		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
+	}
 	if su.mutation.TagsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -378,6 +413,34 @@ func (suo *ServiceUpdateOne) SetHost(s string) *ServiceUpdateOne {
 // SetPort sets the "port" field.
 func (suo *ServiceUpdateOne) SetPort(s string) *ServiceUpdateOne {
 	suo.mutation.SetPort(s)
+	return suo
+}
+
+// SetAvailable sets the "available" field.
+func (suo *ServiceUpdateOne) SetAvailable(b bool) *ServiceUpdateOne {
+	suo.mutation.SetAvailable(b)
+	return suo
+}
+
+// SetNillableAvailable sets the "available" field if the given value is not nil.
+func (suo *ServiceUpdateOne) SetNillableAvailable(b *bool) *ServiceUpdateOne {
+	if b != nil {
+		suo.SetAvailable(*b)
+	}
+	return suo
+}
+
+// SetHeartbeat sets the "heartbeat" field.
+func (suo *ServiceUpdateOne) SetHeartbeat(t time.Time) *ServiceUpdateOne {
+	suo.mutation.SetHeartbeat(t)
+	return suo
+}
+
+// SetNillableHeartbeat sets the "heartbeat" field if the given value is not nil.
+func (suo *ServiceUpdateOne) SetNillableHeartbeat(t *time.Time) *ServiceUpdateOne {
+	if t != nil {
+		suo.SetHeartbeat(*t)
+	}
 	return suo
 }
 
@@ -566,6 +629,12 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	}
 	if value, ok := suo.mutation.Port(); ok {
 		_spec.SetField(service.FieldPort, field.TypeString, value)
+	}
+	if value, ok := suo.mutation.Available(); ok {
+		_spec.SetField(service.FieldAvailable, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.Heartbeat(); ok {
+		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
 	}
 	if suo.mutation.TagsCleared() {
 		edge := &sqlgraph.EdgeSpec{

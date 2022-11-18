@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	atlas "ariga.io/atlas/sql/migrate"
 	"ariga.io/atlas/sql/sqltool"
 	"context"
 	"database/sql"
@@ -9,11 +8,11 @@ import (
 	"entgo.io/ent/dialect/sql/schema"
 	"errors"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx"
 	"github.com/spf13/cobra"
 	"io/fs"
@@ -73,7 +72,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 
 	ctx := context.Background()
 
-	var dir *atlas.LocalDir
+	var dir *sqltool.GolangMigrateDir
 
 	// Create a local migration directory able to understand Atlas migration file format for replay.
 	if migrationsBaseDir == "migrations" {
@@ -86,7 +85,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 
 		checkMigrationsDir(migrationsDir)
 
-		dir, err = atlas.NewLocalDir(migrationsDir)
+		dir, err = sqltool.NewGolangMigrateDir(migrationsDir)
 	} else {
 		migrationsDir, err := filepath.Abs(filepath.Join(migrationsBaseDir, dbType))
 		if err != nil {
@@ -95,7 +94,7 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 
 		checkMigrationsDir(migrationsDir)
 
-		dir, err = atlas.NewLocalDir(migrationsDir)
+		dir, err = sqltool.NewGolangMigrateDir(migrationsDir)
 	}
 
 	if err != nil {
@@ -114,13 +113,10 @@ func execMigrateGenerate(cmd *cobra.Command, args []string) {
 
 	// Migrate diff options.
 	opts := []schema.MigrateOption{
-		schema.WithDir(dir),                         // provide migration directory
-		schema.WithMigrationMode(schema.ModeReplay), // provide migration mode
-		schema.WithDialect(dbDialect),               // Ent dialect to use
-		schema.WithFormatter(sqltool.GolangMigrateFormatter),
-		schema.WithForeignKeys(false),
-		schema.WithDropColumn(true),
-		schema.WithDropIndex(true),
+		schema.WithDir(dir),                                  // provide migration directory
+		schema.WithMigrationMode(schema.ModeReplay),          // provide migration mode
+		schema.WithDialect(dbDialect),                        // Ent dialect to use
+		schema.WithFormatter(sqltool.GolangMigrateFormatter), // Formatter to use
 	}
 
 	if len(args) != 2 {
@@ -256,12 +252,13 @@ func checkMigrationsDir(migrationsDir string) {
 		exit.Fatalf(1, "could not open migrations directory '%s': %v", migrationsDir, err)
 	}
 
-	dirEntries, err := file.Readdirnames(0)
+	// dirEntries, err := file.Readdirnames(0)
+	_, err = file.Readdirnames(0)
 	if err != nil {
 		exit.Fatalf(1, "could not read migrations directory '%s': %v", migrationsDir, err)
 	}
 
-	if len(dirEntries) > 0 {
-		exit.Fatalf(1, "migrations directory '%s' is not empty", migrationsDir)
-	}
+	//if len(dirEntries) > 0 {
+	//	exit.Fatalf(1, "migrations directory '%s' is not empty", migrationsDir)
+	//}
 }

@@ -501,6 +501,8 @@ type ServiceMutation struct {
 	protocol      *string
 	host          *string
 	port          *string
+	available     *bool
+	heartbeat     *time.Time
 	clearedFields map[string]struct{}
 	tags          map[int]struct{}
 	removedtags   map[int]struct{}
@@ -803,6 +805,78 @@ func (m *ServiceMutation) ResetPort() {
 	m.port = nil
 }
 
+// SetAvailable sets the "available" field.
+func (m *ServiceMutation) SetAvailable(b bool) {
+	m.available = &b
+}
+
+// Available returns the value of the "available" field in the mutation.
+func (m *ServiceMutation) Available() (r bool, exists bool) {
+	v := m.available
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAvailable returns the old "available" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldAvailable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAvailable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAvailable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAvailable: %w", err)
+	}
+	return oldValue.Available, nil
+}
+
+// ResetAvailable resets all changes to the "available" field.
+func (m *ServiceMutation) ResetAvailable() {
+	m.available = nil
+}
+
+// SetHeartbeat sets the "heartbeat" field.
+func (m *ServiceMutation) SetHeartbeat(t time.Time) {
+	m.heartbeat = &t
+}
+
+// Heartbeat returns the value of the "heartbeat" field in the mutation.
+func (m *ServiceMutation) Heartbeat() (r time.Time, exists bool) {
+	v := m.heartbeat
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeartbeat returns the old "heartbeat" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldHeartbeat(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeartbeat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeartbeat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeartbeat: %w", err)
+	}
+	return oldValue.Heartbeat, nil
+}
+
+// ResetHeartbeat resets all changes to the "heartbeat" field.
+func (m *ServiceMutation) ResetHeartbeat() {
+	m.heartbeat = nil
+}
+
 // AddTagIDs adds the "tags" edge to the Tag entity by ids.
 func (m *ServiceMutation) AddTagIDs(ids ...int) {
 	if m.tags == nil {
@@ -915,7 +989,7 @@ func (m *ServiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, service.FieldName)
 	}
@@ -930,6 +1004,12 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.port != nil {
 		fields = append(fields, service.FieldPort)
+	}
+	if m.available != nil {
+		fields = append(fields, service.FieldAvailable)
+	}
+	if m.heartbeat != nil {
+		fields = append(fields, service.FieldHeartbeat)
 	}
 	return fields
 }
@@ -949,6 +1029,10 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.Host()
 	case service.FieldPort:
 		return m.Port()
+	case service.FieldAvailable:
+		return m.Available()
+	case service.FieldHeartbeat:
+		return m.Heartbeat()
 	}
 	return nil, false
 }
@@ -968,6 +1052,10 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldHost(ctx)
 	case service.FieldPort:
 		return m.OldPort(ctx)
+	case service.FieldAvailable:
+		return m.OldAvailable(ctx)
+	case service.FieldHeartbeat:
+		return m.OldHeartbeat(ctx)
 	}
 	return nil, fmt.Errorf("unknown Service field %s", name)
 }
@@ -1011,6 +1099,20 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPort(v)
+		return nil
+	case service.FieldAvailable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAvailable(v)
+		return nil
+	case service.FieldHeartbeat:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeartbeat(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
@@ -1084,6 +1186,12 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldPort:
 		m.ResetPort()
+		return nil
+	case service.FieldAvailable:
+		m.ResetAvailable()
+		return nil
+	case service.FieldHeartbeat:
+		m.ResetHeartbeat()
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)

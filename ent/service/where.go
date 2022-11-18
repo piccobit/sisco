@@ -4,6 +4,7 @@ package service
 
 import (
 	"sisco/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -112,6 +113,20 @@ func Host(v string) predicate.Service {
 func Port(v string) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPort), v))
+	})
+}
+
+// Available applies equality check predicate on the "available" field. It's identical to AvailableEQ.
+func Available(v bool) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAvailable), v))
+	})
+}
+
+// Heartbeat applies equality check predicate on the "heartbeat" field. It's identical to HeartbeatEQ.
+func Heartbeat(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldHeartbeat), v))
 	})
 }
 
@@ -621,6 +636,84 @@ func PortEqualFold(v string) predicate.Service {
 func PortContainsFold(v string) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldPort), v))
+	})
+}
+
+// AvailableEQ applies the EQ predicate on the "available" field.
+func AvailableEQ(v bool) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAvailable), v))
+	})
+}
+
+// AvailableNEQ applies the NEQ predicate on the "available" field.
+func AvailableNEQ(v bool) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAvailable), v))
+	})
+}
+
+// HeartbeatEQ applies the EQ predicate on the "heartbeat" field.
+func HeartbeatEQ(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldHeartbeat), v))
+	})
+}
+
+// HeartbeatNEQ applies the NEQ predicate on the "heartbeat" field.
+func HeartbeatNEQ(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldHeartbeat), v))
+	})
+}
+
+// HeartbeatIn applies the In predicate on the "heartbeat" field.
+func HeartbeatIn(vs ...time.Time) predicate.Service {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldHeartbeat), v...))
+	})
+}
+
+// HeartbeatNotIn applies the NotIn predicate on the "heartbeat" field.
+func HeartbeatNotIn(vs ...time.Time) predicate.Service {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldHeartbeat), v...))
+	})
+}
+
+// HeartbeatGT applies the GT predicate on the "heartbeat" field.
+func HeartbeatGT(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldHeartbeat), v))
+	})
+}
+
+// HeartbeatGTE applies the GTE predicate on the "heartbeat" field.
+func HeartbeatGTE(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldHeartbeat), v))
+	})
+}
+
+// HeartbeatLT applies the LT predicate on the "heartbeat" field.
+func HeartbeatLT(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldHeartbeat), v))
+	})
+}
+
+// HeartbeatLTE applies the LTE predicate on the "heartbeat" field.
+func HeartbeatLTE(v time.Time) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldHeartbeat), v))
 	})
 }
 

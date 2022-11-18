@@ -1,3 +1,5 @@
-h1:KraBcCJDKPotBOKc4usuQI8IuYkxfcliMP8X6fxyBio=
+h1:MK8fv7WnIcOUmRt8H3jwwAqTRWV5+zXUb58BpXUT18k=
 20221102145214_initial.down.sql h1:wxKlOoe6ojdBCEvHnATVhqJoA2IQeZQkLwYjoKOyBWw=
 20221102145214_initial.up.sql h1:VnW7r3d72p6AYLoAAVb/F6+1eQqwduNAid6X7PJzUeU=
+20221118221011_heartbeat.down.sql h1:+WwK5gm4DjZEFGET56ob9PHeil26N0VTRtNYFBdHa+I=
+20221118221011_heartbeat.up.sql h1:MJbAn3ZSwXeLi/1RcrAzyuZ6AHEkfji3aPnMDfmXllk=

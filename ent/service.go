@@ -7,6 +7,7 @@ import (
 	"sisco/ent/area"
 	"sisco/ent/service"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -26,6 +27,10 @@ type Service struct {
 	Host string `json:"host,omitempty"`
 	// Port holds the value of the "port" field.
 	Port string `json:"port,omitempty"`
+	// Available holds the value of the "available" field.
+	Available bool `json:"available,omitempty"`
+	// Heartbeat holds the value of the "heartbeat" field.
+	Heartbeat time.Time `json:"heartbeat,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
 	Edges         ServiceEdges `json:"edges"`
@@ -70,10 +75,14 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case service.FieldAvailable:
+			values[i] = new(sql.NullBool)
 		case service.FieldID:
 			values[i] = new(sql.NullInt64)
 		case service.FieldName, service.FieldDescription, service.FieldProtocol, service.FieldHost, service.FieldPort:
 			values[i] = new(sql.NullString)
+		case service.FieldHeartbeat:
+			values[i] = new(sql.NullTime)
 		case service.ForeignKeys[0]: // area_services
 			values[i] = new(sql.NullInt64)
 		default:
@@ -126,6 +135,18 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field port", values[i])
 			} else if value.Valid {
 				s.Port = value.String
+			}
+		case service.FieldAvailable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field available", values[i])
+			} else if value.Valid {
+				s.Available = value.Bool
+			}
+		case service.FieldHeartbeat:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field heartbeat", values[i])
+			} else if value.Valid {
+				s.Heartbeat = value.Time
 			}
 		case service.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -186,6 +207,12 @@ func (s *Service) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("port=")
 	builder.WriteString(s.Port)
+	builder.WriteString(", ")
+	builder.WriteString("available=")
+	builder.WriteString(fmt.Sprintf("%v", s.Available))
+	builder.WriteString(", ")
+	builder.WriteString("heartbeat=")
+	builder.WriteString(s.Heartbeat.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
