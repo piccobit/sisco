@@ -95,8 +95,47 @@ func (c *Client) QueryServicesInArea(ctx context.Context, areaName string) ([]*e
 		All(ctx)
 }
 
-func (c *Client) QueryServices(ctx context.Context) ([]*ent.Service, error) {
-	return c.dbClient.Service.Query().WithTags().Order(ent.Asc(service.FieldID)).All(ctx)
+func (c *Client) QueryServices(ctx context.Context, areaName string, tagName string) ([]*ent.Service, error) {
+	if len(areaName) == 0 && len(tagName) == 0 {
+		// Query all services unrestricted.
+		return c.dbClient.Service.Query().
+			WithArea().
+			WithTags().
+			Order(ent.Asc(service.FieldID)).
+			All(ctx)
+	} else if len(areaName) != 0 && len(tagName) != 0 {
+		// Query services restricted by area & tag.
+		return c.dbClient.Service.Query().
+			Where(
+				service.And(
+					service.HasAreaWith(area.NameEqualFold(areaName)),
+					service.HasTagsWith(tag.NameEqualFold(tagName))),
+			).
+			WithArea().
+			WithTags().
+			Order(ent.Asc(service.FieldID)).
+			All(ctx)
+	} else if len(areaName) != 0 && len(tagName) == 0 {
+		// Query services restricted by area only.
+		return c.dbClient.Service.Query().
+			Where(
+				service.HasAreaWith(area.NameEqualFold(areaName)),
+			).
+			WithArea().
+			WithTags().
+			Order(ent.Asc(service.FieldID)).
+			All(ctx)
+	} else {
+		// Query services restricted by tag only.
+		return c.dbClient.Service.Query().
+			Where(
+				service.HasTagsWith(tag.NameEqualFold(tagName)),
+			).
+			WithArea().
+			WithTags().
+			Order(ent.Asc(service.FieldID)).
+			All(ctx)
+	}
 }
 
 func (c *Client) QueryTags(ctx context.Context) ([]*ent.Tag, error) {

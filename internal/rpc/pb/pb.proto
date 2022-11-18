@@ -4,6 +4,16 @@ option go_package = "github.com/piccobit/sisco/pb";
 
 package pb;
 
+message Service {
+  string name = 1;
+  string area = 2;
+  string description = 3;
+  string protocol = 4;
+  string host = 5;
+  string port = 6;
+  repeated string tags = 7;
+}
+
 // Login
 
 service Login {
@@ -97,13 +107,7 @@ message ListServiceRequest {
 }
 
 message ListServiceReply {
-  string name = 1;
-  string area = 2;
-  string description = 3;
-  string protocol = 4;
-  string host = 5;
-  string port = 6;
-  repeated string tags = 7;
+  Service service = 1;
 }
 
 // ListServices
@@ -115,11 +119,7 @@ service ListServices {
 message ListServicesRequest {
   string bearer = 1;
   string area = 2;
-}
-
-message Service {
-  string name = 1;
-  string description = 2;
+  string tag = 3;
 }
 
 message ListServicesReply {

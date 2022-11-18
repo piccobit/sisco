@@ -5,17 +5,17 @@ import (
 	"sisco/internal/rpc/pb"
 )
 
-func (s *server) ListService(ctx context.Context, in *pb.ListServiceInAreaRequest) (*pb.ListServiceInAreaReply, error) {
+func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*pb.ListServiceReply, error) {
 	var err error
 
 	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
 	if !tokenIsValid || err != nil {
-		return &pb.ListServiceInAreaReply{}, err
+		return &pb.ListServiceReply{}, err
 	}
 
 	se, err := dbConn.QueryServiceInArea(ctx, in.GetName(), in.GetArea())
 	if err != nil {
-		return &pb.ListServiceInAreaReply{}, err
+		return &pb.ListServiceReply{}, err
 	}
 
 	var tags []string
@@ -24,7 +24,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceInAreaReques
 		tags = append(tags, tag.Name)
 	}
 
-	return &pb.ListServiceInAreaReply{
+	svc := pb.Service{
 		Name:        in.GetName(),
 		Area:        in.GetArea(),
 		Description: se.Description,
@@ -32,6 +32,10 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceInAreaReques
 		Host:        se.Host,
 		Port:        se.Port,
 		Tags:        tags,
+	}
+
+	return &pb.ListServiceReply{
+		Service: &svc,
 	}, nil
 }
 
@@ -43,7 +47,7 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 		return &pb.ListServicesReply{}, err
 	}
 
-	r, err := dbConn.QueryServices(ctx)
+	r, err := dbConn.QueryServices(ctx, in.GetArea(), in.GetTag())
 	if err != nil {
 		return &pb.ListServicesReply{}, err
 	}
@@ -51,9 +55,20 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 	var data []*pb.Service
 
 	for _, d := range r {
+		var tags []string
+
+		for _, tag := range d.Edges.Tags {
+			tags = append(tags, tag.Name)
+		}
+
 		e := pb.Service{
 			Name:        d.Name,
+			Area:        d.Edges.Area.Name,
 			Description: d.Description,
+			Protocol:    d.Protocol,
+			Host:        d.Host,
+			Port:        d.Port,
+			Tags:        tags,
 		}
 		data = append(data, &e)
 	}

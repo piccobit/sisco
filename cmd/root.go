@@ -21,7 +21,7 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "sisco",
-	Short: "Lightweight ServiceExtended Discovery",
+	Short: "Lightweight Service Discovery",
 	Long: `sisco is a small and lightweight server providing the possibility to register services and
 to query for them.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {

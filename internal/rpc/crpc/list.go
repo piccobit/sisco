@@ -14,11 +14,6 @@ type Area struct {
 }
 
 type Service struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-type ServiceExtended struct {
 	Name        string   `json:"name"`
 	Area        string   `json:"area"`
 	Description string   `json:"description"`
@@ -32,14 +27,14 @@ type Tag struct {
 	Name string `json:"tag"`
 }
 
-func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName string) (*ServiceExtended, error) {
-	l := pb.NewListServiceInAreaClient(c.grpcClient)
+func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName string) (*Service, error) {
+	l := pb.NewListServiceClient(c.grpcClient)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	r, err := l.ListServiceInArea(ctx, &pb.ListServiceInAreaRequest{
+	r, err := l.ListService(ctx, &pb.ListServiceRequest{
 		Bearer: bearer,
 		Name:   serviceName,
 		Area:   areaName,
@@ -48,20 +43,20 @@ func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName s
 		return nil, errors.New(fmt.Sprintf("listing service in area failed: %v", err))
 	}
 
-	data := ServiceExtended{
-		Name:        r.GetName(),
-		Area:        r.GetArea(),
-		Description: r.GetDescription(),
-		Host:        r.GetHost(),
-		Protocol:    r.GetProtocol(),
-		Port:        r.GetPort(),
-		Tags:        r.GetTags(),
+	data := Service{
+		Name:        r.GetService().GetName(),
+		Area:        r.GetService().GetArea(),
+		Description: r.GetService().GetDescription(),
+		Host:        r.GetService().GetHost(),
+		Protocol:    r.GetService().GetProtocol(),
+		Port:        r.GetService().GetPort(),
+		Tags:        r.GetService().GetTags(),
 	}
 
 	return &data, err
 }
 
-func (c *Client) ListServices(bearer string, areaName string) ([]*Service, error) {
+func (c *Client) ListServices(bearer string, areaName string, tagName string) ([]*Service, error) {
 	l := pb.NewListServicesClient(c.grpcClient)
 
 	// Contact the server and print out its response.
@@ -71,6 +66,7 @@ func (c *Client) ListServices(bearer string, areaName string) ([]*Service, error
 	r, err := l.ListServices(ctx, &pb.ListServicesRequest{
 		Bearer: bearer,
 		Area:   areaName,
+		Tag:    tagName,
 	})
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("listing services failed: %v", err))
@@ -83,7 +79,12 @@ func (c *Client) ListServices(bearer string, areaName string) ([]*Service, error
 	for _, pbs := range pbServices {
 		d := Service{
 			Name:        pbs.GetName(),
+			Area:        pbs.GetArea(),
 			Description: pbs.GetDescription(),
+			Protocol:    pbs.GetProtocol(),
+			Host:        pbs.GetHost(),
+			Port:        pbs.GetPort(),
+			Tags:        pbs.GetTags(),
 		}
 		data = append(data, &d)
 	}

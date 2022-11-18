@@ -10,6 +10,11 @@ import (
 	"sisco/internal/utils"
 )
 
+var (
+	inArea  string
+	withTag string
+)
+
 var listCmd = &cobra.Command{
 	Use:   "list [command]",
 	Short: "List components",
@@ -26,9 +31,9 @@ var listServiceCmd = &cobra.Command{
 }
 
 var listServicesCmd = &cobra.Command{
-	Use:   "services [area name]",
+	Use:   "services",
 	Short: "List services",
-	Long:  `List all services in a specified area.`,
+	Long:  `Lists all known services and can by restricted either to an area or to an attached tag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		execListServices(cmd, args)
 	},
@@ -58,7 +63,10 @@ func init() {
 	listCmd.AddCommand(listAreasCmd)
 	listCmd.AddCommand(listTagsCmd)
 
-	listCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Auth token")
+	listCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "auth token")
+
+	listServicesCmd.PersistentFlags().StringVarP(&inArea, "in-area", "i", "", "in area")
+	listServicesCmd.PersistentFlags().StringVarP(&withTag, "with-tag", "w", "", "with tag")
 
 	rootCmd.AddCommand(listCmd)
 }
@@ -82,7 +90,7 @@ func execListService(cmd *cobra.Command, args []string) {
 }
 
 func execListServices(cmd *cobra.Command, args []string) {
-	if len(args) != 1 {
+	if len(args) != 0 {
 		exit.Fatalln(1, cmd.Usage())
 	}
 
@@ -91,7 +99,7 @@ func execListServices(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	l, err := rpcClient.ListServices(getToken(), args[0])
+	l, err := rpcClient.ListServices(getToken(), inArea, withTag)
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
