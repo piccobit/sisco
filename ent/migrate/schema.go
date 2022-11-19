@@ -28,8 +28,8 @@ var (
 		{Name: "protocol", Type: field.TypeString},
 		{Name: "host", Type: field.TypeString},
 		{Name: "port", Type: field.TypeString},
-		{Name: "available", Type: field.TypeBool, Default: false},
-		{Name: "heartbeat", Type: field.TypeTime},
+		{Name: "available", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "heartbeat", Type: field.TypeTime, Nullable: true},
 		{Name: "area_services", Type: field.TypeInt, Nullable: true},
 	}
 	// ServicesTable holds the schema information for the "services" table.

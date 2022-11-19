@@ -653,6 +653,20 @@ func AvailableNEQ(v bool) predicate.Service {
 	})
 }
 
+// AvailableIsNil applies the IsNil predicate on the "available" field.
+func AvailableIsNil() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldAvailable)))
+	})
+}
+
+// AvailableNotNil applies the NotNil predicate on the "available" field.
+func AvailableNotNil() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldAvailable)))
+	})
+}
+
 // HeartbeatEQ applies the EQ predicate on the "heartbeat" field.
 func HeartbeatEQ(v time.Time) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
@@ -714,6 +728,20 @@ func HeartbeatLT(v time.Time) predicate.Service {
 func HeartbeatLTE(v time.Time) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldHeartbeat), v))
+	})
+}
+
+// HeartbeatIsNil applies the IsNil predicate on the "heartbeat" field.
+func HeartbeatIsNil() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldHeartbeat)))
+	})
+}
+
+// HeartbeatNotNil applies the NotNil predicate on the "heartbeat" field.
+func HeartbeatNotNil() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldHeartbeat)))
 	})
 }
 

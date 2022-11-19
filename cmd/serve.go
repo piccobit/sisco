@@ -112,6 +112,8 @@ func serve() {
 	// kill -9 is syscall, but SIGKILL can't be caught, so we don't need adding it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
+	go heartbeatChecker(quit)
+
 	<-quit
 
 	log.Println("Shutdown servers ...")
@@ -469,6 +471,44 @@ func checkToken(isAdminToken bool) gin.HandlerFunc {
 				} else {
 					c.AbortWithStatus(http.StatusUnauthorized)
 				}
+			}
+		}
+	}
+}
+
+func heartbeatChecker(done chan os.Signal) {
+	t := time.NewTicker(time.Second * time.Duration(cfg.Config.HeartbeatCheckInSeconds))
+	defer t.Stop()
+
+	for {
+		select {
+		case <-done:
+			return
+		case <-t.C:
+			// Check heartbeats
+			log.Println("Checking heartbeats...")
+			checkHeartbeats()
+		}
+	}
+}
+
+func checkHeartbeats() {
+	ctx := context.Background()
+
+	l, err := dbConn.QueryServices(ctx, "", "")
+	if err != nil {
+		exit.Fatalf(1, "could not query services: %v", err)
+	}
+
+	for _, e := range l {
+		if e.Available {
+			if int(time.Now().Sub(e.Heartbeat).Seconds()) > cfg.Config.HeartbeatCheckInSeconds {
+				err := dbConn.UpdateServiceAvailable(ctx, e.Name, false)
+				if err != nil {
+					exit.Fatalf(1, "could not update service availability: %w", err)
+				}
+
+				log.Println(fmt.Sprintf("heartbeat for service '%s' missing", e.Name))
 			}
 		}
 	}

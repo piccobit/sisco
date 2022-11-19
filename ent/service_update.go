@@ -88,6 +88,12 @@ func (su *ServiceUpdate) SetNillableAvailable(b *bool) *ServiceUpdate {
 	return su
 }
 
+// ClearAvailable clears the value of the "available" field.
+func (su *ServiceUpdate) ClearAvailable() *ServiceUpdate {
+	su.mutation.ClearAvailable()
+	return su
+}
+
 // SetHeartbeat sets the "heartbeat" field.
 func (su *ServiceUpdate) SetHeartbeat(t time.Time) *ServiceUpdate {
 	su.mutation.SetHeartbeat(t)
@@ -99,6 +105,12 @@ func (su *ServiceUpdate) SetNillableHeartbeat(t *time.Time) *ServiceUpdate {
 	if t != nil {
 		su.SetHeartbeat(*t)
 	}
+	return su
+}
+
+// ClearHeartbeat clears the value of the "heartbeat" field.
+func (su *ServiceUpdate) ClearHeartbeat() *ServiceUpdate {
+	su.mutation.ClearHeartbeat()
 	return su
 }
 
@@ -261,8 +273,14 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Available(); ok {
 		_spec.SetField(service.FieldAvailable, field.TypeBool, value)
 	}
+	if su.mutation.AvailableCleared() {
+		_spec.ClearField(service.FieldAvailable, field.TypeBool)
+	}
 	if value, ok := su.mutation.Heartbeat(); ok {
 		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
+	}
+	if su.mutation.HeartbeatCleared() {
+		_spec.ClearField(service.FieldHeartbeat, field.TypeTime)
 	}
 	if su.mutation.TagsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -430,6 +448,12 @@ func (suo *ServiceUpdateOne) SetNillableAvailable(b *bool) *ServiceUpdateOne {
 	return suo
 }
 
+// ClearAvailable clears the value of the "available" field.
+func (suo *ServiceUpdateOne) ClearAvailable() *ServiceUpdateOne {
+	suo.mutation.ClearAvailable()
+	return suo
+}
+
 // SetHeartbeat sets the "heartbeat" field.
 func (suo *ServiceUpdateOne) SetHeartbeat(t time.Time) *ServiceUpdateOne {
 	suo.mutation.SetHeartbeat(t)
@@ -441,6 +465,12 @@ func (suo *ServiceUpdateOne) SetNillableHeartbeat(t *time.Time) *ServiceUpdateOn
 	if t != nil {
 		suo.SetHeartbeat(*t)
 	}
+	return suo
+}
+
+// ClearHeartbeat clears the value of the "heartbeat" field.
+func (suo *ServiceUpdateOne) ClearHeartbeat() *ServiceUpdateOne {
+	suo.mutation.ClearHeartbeat()
 	return suo
 }
 
@@ -633,8 +663,14 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	if value, ok := suo.mutation.Available(); ok {
 		_spec.SetField(service.FieldAvailable, field.TypeBool, value)
 	}
+	if suo.mutation.AvailableCleared() {
+		_spec.ClearField(service.FieldAvailable, field.TypeBool)
+	}
 	if value, ok := suo.mutation.Heartbeat(); ok {
 		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
+	}
+	if suo.mutation.HeartbeatCleared() {
+		_spec.ClearField(service.FieldHeartbeat, field.TypeTime)
 	}
 	if suo.mutation.TagsCleared() {
 		edge := &sqlgraph.EdgeSpec{

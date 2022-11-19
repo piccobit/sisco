@@ -23,3 +23,4 @@ ldapFilterAdminsDN: "(&(objectClass=posixAccount)(memberOf=OU=admins,OU=groups,D
 ldapFilterUsersDN: "(&(objectClass=person)(memberOf=OU=users,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
 ldapFilterAdminsDN: "(&(objectClass=person)(memberOf=OU=admins,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
 tokenValidInSeconds: 1800 # seconds
+heartbeatCheckInSeconds: 30

@@ -836,9 +836,22 @@ func (m *ServiceMutation) OldAvailable(ctx context.Context) (v bool, err error) 
 	return oldValue.Available, nil
 }
 
+// ClearAvailable clears the value of the "available" field.
+func (m *ServiceMutation) ClearAvailable() {
+	m.available = nil
+	m.clearedFields[service.FieldAvailable] = struct{}{}
+}
+
+// AvailableCleared returns if the "available" field was cleared in this mutation.
+func (m *ServiceMutation) AvailableCleared() bool {
+	_, ok := m.clearedFields[service.FieldAvailable]
+	return ok
+}
+
 // ResetAvailable resets all changes to the "available" field.
 func (m *ServiceMutation) ResetAvailable() {
 	m.available = nil
+	delete(m.clearedFields, service.FieldAvailable)
 }
 
 // SetHeartbeat sets the "heartbeat" field.
@@ -872,9 +885,22 @@ func (m *ServiceMutation) OldHeartbeat(ctx context.Context) (v time.Time, err er
 	return oldValue.Heartbeat, nil
 }
 
+// ClearHeartbeat clears the value of the "heartbeat" field.
+func (m *ServiceMutation) ClearHeartbeat() {
+	m.heartbeat = nil
+	m.clearedFields[service.FieldHeartbeat] = struct{}{}
+}
+
+// HeartbeatCleared returns if the "heartbeat" field was cleared in this mutation.
+func (m *ServiceMutation) HeartbeatCleared() bool {
+	_, ok := m.clearedFields[service.FieldHeartbeat]
+	return ok
+}
+
 // ResetHeartbeat resets all changes to the "heartbeat" field.
 func (m *ServiceMutation) ResetHeartbeat() {
 	m.heartbeat = nil
+	delete(m.clearedFields, service.FieldHeartbeat)
 }
 
 // AddTagIDs adds the "tags" edge to the Tag entity by ids.
@@ -1147,6 +1173,12 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldDescription) {
 		fields = append(fields, service.FieldDescription)
 	}
+	if m.FieldCleared(service.FieldAvailable) {
+		fields = append(fields, service.FieldAvailable)
+	}
+	if m.FieldCleared(service.FieldHeartbeat) {
+		fields = append(fields, service.FieldHeartbeat)
+	}
 	return fields
 }
 
@@ -1163,6 +1195,12 @@ func (m *ServiceMutation) ClearField(name string) error {
 	switch name {
 	case service.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case service.FieldAvailable:
+		m.ClearAvailable()
+		return nil
+	case service.FieldHeartbeat:
+		m.ClearHeartbeat()
 		return nil
 	}
 	return fmt.Errorf("unknown Service nullable field %s", name)

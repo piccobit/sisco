@@ -20,8 +20,8 @@ func (Service) Fields() []ent.Field {
 		field.String("protocol"),
 		field.String("host"),
 		field.String("port"),
-		field.Bool("available").Default(false),
-		field.Time("heartbeat").Default(time.Now()),
+		field.Bool("available").Default(false).Optional(),
+		field.Time("heartbeat").Default(time.Now()).Optional(),
 	}
 }
 
