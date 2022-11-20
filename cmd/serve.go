@@ -506,7 +506,7 @@ func checkHeartbeats() {
 					exit.Fatalf(1, "could not update service availability: %w", err)
 				}
 
-				log.Println(fmt.Sprintf("heartbeat for service '%s' missing", e.Name))
+				log.Println(fmt.Sprintf("Heartbeat for service '%s' missing", e.Name))
 			}
 		}
 	}
