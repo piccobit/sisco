@@ -81,7 +81,7 @@ func execListService(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}
 
-	l, err := rpcClient.ListServiceInArea(getToken(), args[0], args[1])
+	l, err := rpcClient.ListService(getToken(), args[0], args[1])
 	if err != nil {
 		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
 	}

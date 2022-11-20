@@ -21,13 +21,14 @@ type Service struct {
 	Protocol    string   `json:"protocol"`
 	Port        string   `json:"port"`
 	Tags        []string ` json:"tags"`
+	Available   bool     `json:"available"`
 }
 
 type Tag struct {
 	Name string `json:"tag"`
 }
 
-func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName string) (*Service, error) {
+func (c *Client) ListService(bearer string, serviceName string, areaName string) (*Service, error) {
 	l := pb.NewListServiceClient(c.grpcClient)
 
 	// Contact the server and print out its response.
@@ -51,6 +52,7 @@ func (c *Client) ListServiceInArea(bearer string, serviceName string, areaName s
 		Protocol:    r.GetService().GetProtocol(),
 		Port:        r.GetService().GetPort(),
 		Tags:        r.GetService().GetTags(),
+		Available:   r.GetService().GetAvailable(),
 	}
 
 	return &data, err
@@ -85,6 +87,7 @@ func (c *Client) ListServices(bearer string, areaName string, tagName string) ([
 			Host:        pbs.GetHost(),
 			Port:        pbs.GetPort(),
 			Tags:        pbs.GetTags(),
+			Available:   pbs.GetAvailable(),
 		}
 		data = append(data, &d)
 	}

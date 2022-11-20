@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"sisco/ent"
 	"sisco/ent/area"
@@ -46,6 +47,8 @@ func (c *Client) CreateService(ctx context.Context, serviceName string, areaName
 		SetProtocol(protocol).
 		SetHost(host).
 		SetPort(port).
+		SetAvailable(true).
+		SetHeartbeat(time.Now()).
 		AddTags(tagEntries...).
 		Save(ctx)
 

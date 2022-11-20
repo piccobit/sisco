@@ -21,3 +21,12 @@ func (c *Client) UpdateServiceHeartbeat(ctx context.Context, serviceName string,
 		SetHeartbeat(heartbeat).
 		Exec(ctx)
 }
+
+func (c *Client) UpdateServiceAvailableHeartbeat(ctx context.Context, serviceName string, available bool, heartbeat time.Time) error {
+	return c.dbClient.Service.
+		Update().
+		Where(service.NameEqualFold(serviceName)).
+		SetAvailable(available).
+		SetHeartbeat(heartbeat).
+		Exec(ctx)
+}

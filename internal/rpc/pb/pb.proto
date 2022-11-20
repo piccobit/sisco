@@ -11,7 +11,8 @@ message Service {
   string protocol = 4;
   string host = 5;
   string port = 6;
-  repeated string tags = 7;
+  bool available = 7;
+  repeated string tags = 8;
 }
 
 // Login

@@ -24,8 +24,9 @@ import (
 
 // type gRPCServer struct
 
-func init() {
-	rootCmd.AddCommand(serveCmd)
+type Login struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
 var serveCmd = &cobra.Command{
@@ -41,6 +42,10 @@ var (
 	dbClient *ent.Client
 	dbConn   *db.Client
 )
+
+func init() {
+	rootCmd.AddCommand(serveCmd)
+}
 
 func serve() {
 	var err error
@@ -315,7 +320,7 @@ type RegisterService struct {
 	Tags        []string `yaml:"tags,omitempty"`
 }
 
-func apiRegisterServiceInArea(c *gin.Context) {
+func apiRegisterService(c *gin.Context) {
 	var err error
 	var rs RegisterService
 
@@ -381,11 +386,6 @@ func apiRegisterArea(c *gin.Context) {
 	})
 }
 
-type Login struct {
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-}
-
 func apiLogin(c *gin.Context) {
 	var l Login
 
@@ -420,6 +420,33 @@ func apiLogin(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"token":        authToken,
 			"isAdminToken": isAdminToken,
+		})
+	}
+}
+
+func apiHeartbeat(c *gin.Context) {
+	ctx := context.Background()
+
+	paramService := c.Param("service")
+
+	err := dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, true, time.Now())
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	prettyQuery, _ := strconv.ParseBool(c.Query("pretty"))
+
+	if pretty || prettyQuery {
+		c.IndentedJSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
 		})
 	}
 }
@@ -498,6 +525,7 @@ func setupAPIRouter() *gin.Engine {
 
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
+	v1Group.PUT("/heartbeat/:service", checkToken(true), apiHeartbeat)
 
 	listGroup := v1Group.Group("/list", checkToken(false))
 	listGroup.GET("/areas", apiListAreas)
@@ -510,7 +538,7 @@ func setupAPIRouter() *gin.Engine {
 
 	registerGroup := adminGroup.Group("/register")
 	registerGroup.POST("/area/:area", apiRegisterArea)
-	registerGroup.POST("/service/:service/in/:area", apiRegisterServiceInArea)
+	registerGroup.POST("/service/:service/in/:area", apiRegisterService)
 
 	deleteGroup := adminGroup.Group("/delete")
 	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteServiceInArea)
