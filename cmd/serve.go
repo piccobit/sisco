@@ -51,37 +51,6 @@ func serve() {
 	}
 	defer dbConn.Close()
 
-	if cfg.Config.GinReleaseMode {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	router := gin.Default()
-	err = router.SetTrustedProxies(cfg.Config.TrustedProxies)
-	if err != nil {
-		exit.Fatalf(1, "failed setting trusted proxies: %v", err)
-	}
-
-	v1Group := router.Group("/api/v1")
-	v1Group.POST("/login", apiLogin)
-
-	listGroup := v1Group.Group("/list", checkToken(false))
-	listGroup.GET("/areas", apiListAreas)
-	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
-	listGroup.GET("/services/in/:area", apiListServicesInArea)
-	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
-	listGroup.GET("/tags", apiListTags)
-
-	adminGroup := v1Group.Group("/admin", checkToken(true))
-
-	registerGroup := adminGroup.Group("/register")
-	registerGroup.POST("/area/:area", apiRegisterArea)
-	registerGroup.POST("/service/:service/in/:area", apiRegisterServiceInArea)
-
-	deleteGroup := adminGroup.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteServiceInArea)
-	deleteGroup.DELETE("/area/:area", apiDeleteArea)
-	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
-
 	grpcListenAddr := fmt.Sprintf(":%d", cfg.Config.GRPCPort)
 
 	grpcSrv, err := srpc.New(
@@ -95,12 +64,12 @@ func serve() {
 
 	listenAddr := fmt.Sprintf("[::]:%d", cfg.Config.Port)
 
+	router := setupAPIRouter()
+
 	httpSrv := &http.Server{
 		Addr:    listenAddr,
 		Handler: router,
 	}
-
-	log.Printf("HTTP server listening at %s", httpSrv.Addr)
 
 	go httpServer(httpSrv)
 
@@ -139,6 +108,8 @@ func serve() {
 }
 
 func httpServer(srv *http.Server) {
+	log.Printf("HTTP server listening at %s", srv.Addr)
+
 	if cfg.Config.UseTLS {
 		if err := srv.ListenAndServeTLS(cfg.Config.TLSCertFile, cfg.Config.TLSKeyFile); err != nil && err != http.ErrServerClosed {
 			exit.Fatalf(1, "failed listening: %v", err)
@@ -512,4 +483,39 @@ func checkHeartbeats() {
 			}
 		}
 	}
+}
+
+func setupAPIRouter() *gin.Engine {
+	if cfg.Config.GinReleaseMode {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	router := gin.Default()
+	err := router.SetTrustedProxies(cfg.Config.TrustedProxies)
+	if err != nil {
+		exit.Fatalf(1, "failed setting trusted proxies: %v", err)
+	}
+
+	v1Group := router.Group("/api/v1")
+	v1Group.POST("/login", apiLogin)
+
+	listGroup := v1Group.Group("/list", checkToken(false))
+	listGroup.GET("/areas", apiListAreas)
+	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
+	listGroup.GET("/services/in/:area", apiListServicesInArea)
+	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
+	listGroup.GET("/tags", apiListTags)
+
+	adminGroup := v1Group.Group("/admin", checkToken(true))
+
+	registerGroup := adminGroup.Group("/register")
+	registerGroup.POST("/area/:area", apiRegisterArea)
+	registerGroup.POST("/service/:service/in/:area", apiRegisterServiceInArea)
+
+	deleteGroup := adminGroup.Group("/delete")
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteServiceInArea)
+	deleteGroup.DELETE("/area/:area", apiDeleteArea)
+	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
+
+	return router
 }
