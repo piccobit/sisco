@@ -108,7 +108,7 @@ func serve() {
 	// Catching ctx.Done(). Timeout of 5 seconds.
 	select {
 	case <-ctx.Done():
-		log.Println("Exiting ...")
+		log.Println("Exiting...")
 	}
 }
 
