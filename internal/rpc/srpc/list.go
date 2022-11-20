@@ -32,6 +32,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		Host:        se.Host,
 		Port:        se.Port,
 		Tags:        tags,
+		Available:   se.Available,
 	}
 
 	return &pb.ListServiceReply{
@@ -69,6 +70,7 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 			Host:        d.Host,
 			Port:        d.Port,
 			Tags:        tags,
+			Available:   d.Available,
 		}
 		data = append(data, &e)
 	}
