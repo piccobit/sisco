@@ -54,17 +54,16 @@ func (tu *TokenUpdate) SetNillableCreated(t *time.Time) *TokenUpdate {
 	return tu
 }
 
-// SetAdmin sets the "admin" field.
-func (tu *TokenUpdate) SetAdmin(b bool) *TokenUpdate {
-	tu.mutation.SetAdmin(b)
+// SetPermissions sets the "permissions" field.
+func (tu *TokenUpdate) SetPermissions(u uint64) *TokenUpdate {
+	tu.mutation.ResetPermissions()
+	tu.mutation.SetPermissions(u)
 	return tu
 }
 
-// SetNillableAdmin sets the "admin" field if the given value is not nil.
-func (tu *TokenUpdate) SetNillableAdmin(b *bool) *TokenUpdate {
-	if b != nil {
-		tu.SetAdmin(*b)
-	}
+// AddPermissions adds u to the "permissions" field.
+func (tu *TokenUpdate) AddPermissions(u int64) *TokenUpdate {
+	tu.mutation.AddPermissions(u)
 	return tu
 }
 
@@ -154,8 +153,11 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.Created(); ok {
 		_spec.SetField(token.FieldCreated, field.TypeTime, value)
 	}
-	if value, ok := tu.mutation.Admin(); ok {
-		_spec.SetField(token.FieldAdmin, field.TypeBool, value)
+	if value, ok := tu.mutation.Permissions(); ok {
+		_spec.SetField(token.FieldPermissions, field.TypeUint64, value)
+	}
+	if value, ok := tu.mutation.AddedPermissions(); ok {
+		_spec.AddField(token.FieldPermissions, field.TypeUint64, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -202,17 +204,16 @@ func (tuo *TokenUpdateOne) SetNillableCreated(t *time.Time) *TokenUpdateOne {
 	return tuo
 }
 
-// SetAdmin sets the "admin" field.
-func (tuo *TokenUpdateOne) SetAdmin(b bool) *TokenUpdateOne {
-	tuo.mutation.SetAdmin(b)
+// SetPermissions sets the "permissions" field.
+func (tuo *TokenUpdateOne) SetPermissions(u uint64) *TokenUpdateOne {
+	tuo.mutation.ResetPermissions()
+	tuo.mutation.SetPermissions(u)
 	return tuo
 }
 
-// SetNillableAdmin sets the "admin" field if the given value is not nil.
-func (tuo *TokenUpdateOne) SetNillableAdmin(b *bool) *TokenUpdateOne {
-	if b != nil {
-		tuo.SetAdmin(*b)
-	}
+// AddPermissions adds u to the "permissions" field.
+func (tuo *TokenUpdateOne) AddPermissions(u int64) *TokenUpdateOne {
+	tuo.mutation.AddPermissions(u)
 	return tuo
 }
 
@@ -332,8 +333,11 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (_node *Token, err error
 	if value, ok := tuo.mutation.Created(); ok {
 		_spec.SetField(token.FieldCreated, field.TypeTime, value)
 	}
-	if value, ok := tuo.mutation.Admin(); ok {
-		_spec.SetField(token.FieldAdmin, field.TypeBool, value)
+	if value, ok := tuo.mutation.Permissions(); ok {
+		_spec.SetField(token.FieldPermissions, field.TypeUint64, value)
+	}
+	if value, ok := tuo.mutation.AddedPermissions(); ok {
+		_spec.AddField(token.FieldPermissions, field.TypeUint64, value)
 	}
 	_node = &Token{config: tuo.config}
 	_spec.Assign = _node.assignValues

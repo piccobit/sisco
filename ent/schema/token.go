@@ -18,7 +18,7 @@ func (Token) Fields() []ent.Field {
 		field.String("user").Unique(),
 		field.String("token"),
 		field.Time("created").Default(time.Now()),
-		field.Bool("admin").Default(false),
+		field.Uint64("permissions"),
 	}
 }
 

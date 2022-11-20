@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sisco/internal/auth"
 	"strings"
 
 	"github.com/go-ldap/ldap"
@@ -42,12 +43,12 @@ func New(cfg *cfg.Configuration) (*LDAPConn, error) {
 	return &lc, nil
 }
 
-func (lc *LDAPConn) Authenticate(user string, password string) (bool, error) {
+func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions, error) {
 	var err error
 
 	// We check first if this is an 'admin' token.
 
-	isAdmin := false
+	permissions := auth.Unknown
 
 	filter := replace(lc.config.LdapFilterAdminsDN, "{user}", ldap.EscapeFilter(user))
 
@@ -55,11 +56,11 @@ func (lc *LDAPConn) Authenticate(user string, password string) (bool, error) {
 
 	result, err := lc.ldapConn.Search(searchReq)
 	if err != nil {
-		return false, err
+		return auth.Unknown, err
 	}
 
 	if len(result.Entries) != 0 {
-		isAdmin = true
+		permissions = permissions | auth.Admin
 	} else {
 		filter = replace(lc.config.LdapFilterUsersDN, "{user}", ldap.EscapeFilter(user))
 
@@ -67,11 +68,11 @@ func (lc *LDAPConn) Authenticate(user string, password string) (bool, error) {
 
 		result, err = lc.ldapConn.Search(searchReq)
 		if err != nil {
-			return false, err
+			return auth.Admin, err
 		}
 
 		if len(result.Entries) == 0 {
-			return false, errors.New("user not found")
+			return auth.Admin, errors.New("user not found")
 		}
 	}
 
@@ -79,10 +80,10 @@ func (lc *LDAPConn) Authenticate(user string, password string) (bool, error) {
 
 	err = lc.ldapConn.Bind(dn, password)
 	if err != nil {
-		return false, err
+		return auth.Admin, err
 	}
 
-	return isAdmin, nil
+	return permissions, nil
 }
 
 func replace(haystack string, needle string, replacement string) string {

@@ -101,10 +101,10 @@ func Created(v time.Time) predicate.Token {
 	})
 }
 
-// Admin applies equality check predicate on the "admin" field. It's identical to AdminEQ.
-func Admin(v bool) predicate.Token {
+// Permissions applies equality check predicate on the "permissions" field. It's identical to PermissionsEQ.
+func Permissions(v uint64) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAdmin), v))
+		s.Where(sql.EQ(s.C(FieldPermissions), v))
 	})
 }
 
@@ -370,17 +370,67 @@ func CreatedLTE(v time.Time) predicate.Token {
 	})
 }
 
-// AdminEQ applies the EQ predicate on the "admin" field.
-func AdminEQ(v bool) predicate.Token {
+// PermissionsEQ applies the EQ predicate on the "permissions" field.
+func PermissionsEQ(v uint64) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAdmin), v))
+		s.Where(sql.EQ(s.C(FieldPermissions), v))
 	})
 }
 
-// AdminNEQ applies the NEQ predicate on the "admin" field.
-func AdminNEQ(v bool) predicate.Token {
+// PermissionsNEQ applies the NEQ predicate on the "permissions" field.
+func PermissionsNEQ(v uint64) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldAdmin), v))
+		s.Where(sql.NEQ(s.C(FieldPermissions), v))
+	})
+}
+
+// PermissionsIn applies the In predicate on the "permissions" field.
+func PermissionsIn(vs ...uint64) predicate.Token {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldPermissions), v...))
+	})
+}
+
+// PermissionsNotIn applies the NotIn predicate on the "permissions" field.
+func PermissionsNotIn(vs ...uint64) predicate.Token {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldPermissions), v...))
+	})
+}
+
+// PermissionsGT applies the GT predicate on the "permissions" field.
+func PermissionsGT(v uint64) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldPermissions), v))
+	})
+}
+
+// PermissionsGTE applies the GTE predicate on the "permissions" field.
+func PermissionsGTE(v uint64) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldPermissions), v))
+	})
+}
+
+// PermissionsLT applies the LT predicate on the "permissions" field.
+func PermissionsLT(v uint64) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldPermissions), v))
+	})
+}
+
+// PermissionsLTE applies the LTE predicate on the "permissions" field.
+func PermissionsLTE(v uint64) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldPermissions), v))
 	})
 }
 

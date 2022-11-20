@@ -2,13 +2,14 @@ package srpc
 
 import (
 	"context"
+	"sisco/internal/auth"
 	"sisco/internal/rpc/pb"
 )
 
 func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*pb.ListServiceReply, error) {
 	var err error
 
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
+	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
 		return &pb.ListServiceReply{}, err
 	}
@@ -43,7 +44,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (*pb.ListServicesReply, error) {
 	var err error
 
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
+	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
 		return &pb.ListServicesReply{}, err
 	}
@@ -83,7 +84,7 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 func (s *server) ListAreas(ctx context.Context, in *pb.ListAreasRequest) (*pb.ListAreasReply, error) {
 	var err error
 
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
+	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
 		return &pb.ListAreasReply{}, err
 	}
@@ -111,7 +112,7 @@ func (s *server) ListAreas(ctx context.Context, in *pb.ListAreasRequest) (*pb.Li
 func (s *server) ListTags(ctx context.Context, in *pb.ListTagsRequest) (*pb.ListTagsReply, error) {
 	var err error
 
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), true)
+	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
 		return &pb.ListTagsReply{}, err
 	}

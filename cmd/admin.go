@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"sisco/internal/auth"
 	"sisco/internal/exit"
 	"sisco/internal/rpc/crpc"
 	"sisco/internal/utils"
@@ -14,8 +15,8 @@ type StatusCode struct {
 }
 
 type AuthTokenInfo struct {
-	Token        string `json:"token"`
-	IsAdminToken bool   `json:"isAdminToken"`
+	Token       string           `json:"token"`
+	Permissions auth.Permissions `json:"permissions"`
 }
 
 var adminRegisterCmd = &cobra.Command{

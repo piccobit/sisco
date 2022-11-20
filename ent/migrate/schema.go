@@ -28,8 +28,8 @@ var (
 		{Name: "protocol", Type: field.TypeString},
 		{Name: "host", Type: field.TypeString},
 		{Name: "port", Type: field.TypeString},
-		{Name: "available", Type: field.TypeBool, Nullable: true, Default: false},
-		{Name: "heartbeat", Type: field.TypeTime, Nullable: true},
+		{Name: "available", Type: field.TypeBool, Default: false},
+		{Name: "heartbeat", Type: field.TypeTime},
 		{Name: "area_services", Type: field.TypeInt, Nullable: true},
 	}
 	// ServicesTable holds the schema information for the "services" table.
@@ -63,7 +63,7 @@ var (
 		{Name: "user", Type: field.TypeString, Unique: true},
 		{Name: "token", Type: field.TypeString},
 		{Name: "created", Type: field.TypeTime},
-		{Name: "admin", Type: field.TypeBool, Default: false},
+		{Name: "permissions", Type: field.TypeUint64},
 	}
 	// TokensTable holds the schema information for the "tokens" table.
 	TokensTable = &schema.Table{

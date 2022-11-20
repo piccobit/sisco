@@ -2,11 +2,12 @@ package crpc
 
 import (
 	"context"
+	"sisco/internal/auth"
 	"sisco/internal/rpc/pb"
 	"time"
 )
 
-func (c *Client) Login(user string, password string) (string, bool, error) {
+func (c *Client) Login(user string, password string) (string, auth.Permissions, error) {
 	l := pb.NewLoginClient(c.grpcClient)
 
 	// Contact the server and print out its response.
@@ -18,8 +19,8 @@ func (c *Client) Login(user string, password string) (string, bool, error) {
 		Password: password,
 	})
 	if err != nil {
-		return "", false, err
+		return "", auth.Unknown, err
 	}
 
-	return r.GetToken(), r.GetIsAdminToken(), err
+	return r.GetToken(), auth.Permissions(r.GetPermissions()), err
 }

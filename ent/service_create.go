@@ -227,6 +227,12 @@ func (sc *ServiceCreate) check() error {
 	if _, ok := sc.mutation.Port(); !ok {
 		return &ValidationError{Name: "port", err: errors.New(`ent: missing required field "Service.port"`)}
 	}
+	if _, ok := sc.mutation.Available(); !ok {
+		return &ValidationError{Name: "available", err: errors.New(`ent: missing required field "Service.available"`)}
+	}
+	if _, ok := sc.mutation.Heartbeat(); !ok {
+		return &ValidationError{Name: "heartbeat", err: errors.New(`ent: missing required field "Service.heartbeat"`)}
+	}
 	return nil
 }
 

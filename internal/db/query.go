@@ -15,7 +15,7 @@ import (
 	"sisco/internal/cfg"
 )
 
-func (c *Client) CheckToken(ctx context.Context, bearer string, isAdminToken bool) (bool, error) {
+func (c *Client) CheckToken(ctx context.Context, bearer string, permissions uint64) (bool, error) {
 	t, err := c.dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
 	if err != nil {
 		return false, err
@@ -26,29 +26,27 @@ func (c *Client) CheckToken(ctx context.Context, bearer string, isAdminToken boo
 		return false, err
 	}
 
-	if isAdminToken {
-		if !t.Admin {
-			err = errors.New("token is not an admin token")
-			return false, err
-		}
+	if (t.Permissions & permissions) != permissions {
+		err = errors.New("token is not an admin token")
+		return false, err
 	}
 
 	return true, nil
 }
 
-func (c *Client) QuerySecretToken(ctx context.Context, user string, password string) (string, bool, error) {
+func (c *Client) QuerySecretToken(ctx context.Context, user string, password string) (string, auth.Permissions, error) {
 	var err error
 
 	authToken := auth.GenerateSecureToken(32)
 
 	lc, err := ldapconn.New(&cfg.Config)
 	if err != nil {
-		return "", false, nil
+		return "", auth.Unknown, nil
 	}
 
-	isAdmin, err := lc.Authenticate(user, password)
+	permissions, err := lc.Authenticate(user, password)
 	if err != nil {
-		return "", false, nil
+		return "", auth.Unknown, nil
 	}
 
 	t, err := c.dbClient.Token.Query().Where(token.User(user)).Only(ctx)
@@ -56,24 +54,24 @@ func (c *Client) QuerySecretToken(ctx context.Context, user string, password str
 		_, err = c.dbClient.Token.Create().
 			SetUser(user).
 			SetToken(authToken).
-			SetAdmin(isAdmin).
+			SetPermissions(uint64(permissions)).
 			Save(ctx)
 		if err != nil {
-			return "", false, nil
+			return "", auth.Unknown, nil
 		}
 	} else {
 		_, err = c.dbClient.Token.Update().
 			Where(token.User(user)).
 			SetToken(authToken).
-			SetAdmin(isAdmin).
+			SetPermissions(uint64(permissions)).
 			SetCreated(time.Now()).
 			Save(ctx)
 		if err != nil {
-			return "", false, nil
+			return "", auth.Unknown, nil
 		}
 	}
 
-	return authToken, isAdmin, nil
+	return authToken, permissions, nil
 }
 func (c *Client) QueryAreas(ctx context.Context) ([]*ent.Area, error) {
 	return c.dbClient.Area.Query().WithServices().Order(ent.Asc(area.FieldID)).Order(ent.Asc(service.FieldID)).All(ctx)

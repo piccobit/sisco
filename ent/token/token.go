@@ -17,8 +17,8 @@ const (
 	FieldToken = "token"
 	// FieldCreated holds the string denoting the created field in the database.
 	FieldCreated = "created"
-	// FieldAdmin holds the string denoting the admin field in the database.
-	FieldAdmin = "admin"
+	// FieldPermissions holds the string denoting the permissions field in the database.
+	FieldPermissions = "permissions"
 	// Table holds the table name of the token in the database.
 	Table = "tokens"
 )
@@ -29,7 +29,7 @@ var Columns = []string{
 	FieldUser,
 	FieldToken,
 	FieldCreated,
-	FieldAdmin,
+	FieldPermissions,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -45,6 +45,4 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultCreated holds the default value on creation for the "created" field.
 	DefaultCreated time.Time
-	// DefaultAdmin holds the default value on creation for the "admin" field.
-	DefaultAdmin bool
 )

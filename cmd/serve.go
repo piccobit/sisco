@@ -13,6 +13,7 @@ import (
 	"sisco/ent/area"
 	"sisco/ent/service"
 	"sisco/ent/tag"
+	"sisco/internal/auth"
 	"sisco/internal/cfg"
 	"sisco/internal/db"
 	"sisco/internal/exit"
@@ -203,7 +204,7 @@ func apiGetServiceInArea(c *gin.Context) {
 	}
 }
 
-func apiDeleteServiceInArea(c *gin.Context) {
+func apiDeleteService(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
@@ -452,7 +453,7 @@ func apiHeartbeat(c *gin.Context) {
 	}
 }
 
-func checkToken(isAdminToken bool) gin.HandlerFunc {
+func checkToken(permissions auth.Permissions) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -461,7 +462,7 @@ func checkToken(isAdminToken bool) gin.HandlerFunc {
 		if len(bearer) == 0 {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		} else {
-			tokenIsValid, err := dbConn.CheckToken(ctx, bearer, isAdminToken)
+			tokenIsValid, err := dbConn.CheckToken(ctx, bearer, auth.Admin)
 			if err != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
@@ -532,22 +533,22 @@ func setupAPIRouter() *gin.Engine {
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
 
-	listGroup := v1Group.Group("/list", checkToken(false))
+	listGroup := v1Group.Group("/list", checkToken(auth.Admin|auth.Service|auth.User))
 	listGroup.GET("/areas", apiListAreas)
 	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
 	listGroup.GET("/services/in/:area", apiListServices)
 	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
 	listGroup.GET("/tags", apiListTags)
 
-	adminGroup := v1Group.Group("/admin", checkToken(true))
+	adminGroup := v1Group.Group("/admin", checkToken(auth.Admin|auth.Service))
 	adminGroup.PUT("/heartbeat/:service/:area", apiHeartbeat)
 
 	registerGroup := adminGroup.Group("/register")
-	registerGroup.POST("/area/:area", apiRegisterArea)
+	registerGroup.POST("/area/:area", apiRegisterArea, checkToken(auth.Admin))
 	registerGroup.POST("/service/:service/in/:area", apiRegisterService)
 
 	deleteGroup := adminGroup.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteServiceInArea)
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkToken(auth.Admin))
 	deleteGroup.DELETE("/area/:area", apiDeleteArea)
 	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
 

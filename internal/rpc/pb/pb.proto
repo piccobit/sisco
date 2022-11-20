@@ -28,7 +28,7 @@ message LoginRequest {
 
 message LoginReply {
   string token = 1;
-  bool isAdminToken = 2;
+  uint64 permissions = 2;
 }
 
 // RegisterArea

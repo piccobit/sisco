@@ -836,22 +836,9 @@ func (m *ServiceMutation) OldAvailable(ctx context.Context) (v bool, err error) 
 	return oldValue.Available, nil
 }
 
-// ClearAvailable clears the value of the "available" field.
-func (m *ServiceMutation) ClearAvailable() {
-	m.available = nil
-	m.clearedFields[service.FieldAvailable] = struct{}{}
-}
-
-// AvailableCleared returns if the "available" field was cleared in this mutation.
-func (m *ServiceMutation) AvailableCleared() bool {
-	_, ok := m.clearedFields[service.FieldAvailable]
-	return ok
-}
-
 // ResetAvailable resets all changes to the "available" field.
 func (m *ServiceMutation) ResetAvailable() {
 	m.available = nil
-	delete(m.clearedFields, service.FieldAvailable)
 }
 
 // SetHeartbeat sets the "heartbeat" field.
@@ -885,22 +872,9 @@ func (m *ServiceMutation) OldHeartbeat(ctx context.Context) (v time.Time, err er
 	return oldValue.Heartbeat, nil
 }
 
-// ClearHeartbeat clears the value of the "heartbeat" field.
-func (m *ServiceMutation) ClearHeartbeat() {
-	m.heartbeat = nil
-	m.clearedFields[service.FieldHeartbeat] = struct{}{}
-}
-
-// HeartbeatCleared returns if the "heartbeat" field was cleared in this mutation.
-func (m *ServiceMutation) HeartbeatCleared() bool {
-	_, ok := m.clearedFields[service.FieldHeartbeat]
-	return ok
-}
-
 // ResetHeartbeat resets all changes to the "heartbeat" field.
 func (m *ServiceMutation) ResetHeartbeat() {
 	m.heartbeat = nil
-	delete(m.clearedFields, service.FieldHeartbeat)
 }
 
 // AddTagIDs adds the "tags" edge to the Tag entity by ids.
@@ -1173,12 +1147,6 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldDescription) {
 		fields = append(fields, service.FieldDescription)
 	}
-	if m.FieldCleared(service.FieldAvailable) {
-		fields = append(fields, service.FieldAvailable)
-	}
-	if m.FieldCleared(service.FieldHeartbeat) {
-		fields = append(fields, service.FieldHeartbeat)
-	}
 	return fields
 }
 
@@ -1195,12 +1163,6 @@ func (m *ServiceMutation) ClearField(name string) error {
 	switch name {
 	case service.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case service.FieldAvailable:
-		m.ClearAvailable()
-		return nil
-	case service.FieldHeartbeat:
-		m.ClearHeartbeat()
 		return nil
 	}
 	return fmt.Errorf("unknown Service nullable field %s", name)
@@ -1744,17 +1706,18 @@ func (m *TagMutation) ResetEdge(name string) error {
 // TokenMutation represents an operation that mutates the Token nodes in the graph.
 type TokenMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	user          *string
-	token         *string
-	created       *time.Time
-	admin         *bool
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Token, error)
-	predicates    []predicate.Token
+	op             Op
+	typ            string
+	id             *int
+	user           *string
+	token          *string
+	created        *time.Time
+	permissions    *uint64
+	addpermissions *int64
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*Token, error)
+	predicates     []predicate.Token
 }
 
 var _ ent.Mutation = (*TokenMutation)(nil)
@@ -1963,40 +1926,60 @@ func (m *TokenMutation) ResetCreated() {
 	m.created = nil
 }
 
-// SetAdmin sets the "admin" field.
-func (m *TokenMutation) SetAdmin(b bool) {
-	m.admin = &b
+// SetPermissions sets the "permissions" field.
+func (m *TokenMutation) SetPermissions(u uint64) {
+	m.permissions = &u
+	m.addpermissions = nil
 }
 
-// Admin returns the value of the "admin" field in the mutation.
-func (m *TokenMutation) Admin() (r bool, exists bool) {
-	v := m.admin
+// Permissions returns the value of the "permissions" field in the mutation.
+func (m *TokenMutation) Permissions() (r uint64, exists bool) {
+	v := m.permissions
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAdmin returns the old "admin" field's value of the Token entity.
+// OldPermissions returns the old "permissions" field's value of the Token entity.
 // If the Token object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TokenMutation) OldAdmin(ctx context.Context) (v bool, err error) {
+func (m *TokenMutation) OldPermissions(ctx context.Context) (v uint64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAdmin is only allowed on UpdateOne operations")
+		return v, errors.New("OldPermissions is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAdmin requires an ID field in the mutation")
+		return v, errors.New("OldPermissions requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAdmin: %w", err)
+		return v, fmt.Errorf("querying old value for OldPermissions: %w", err)
 	}
-	return oldValue.Admin, nil
+	return oldValue.Permissions, nil
 }
 
-// ResetAdmin resets all changes to the "admin" field.
-func (m *TokenMutation) ResetAdmin() {
-	m.admin = nil
+// AddPermissions adds u to the "permissions" field.
+func (m *TokenMutation) AddPermissions(u int64) {
+	if m.addpermissions != nil {
+		*m.addpermissions += u
+	} else {
+		m.addpermissions = &u
+	}
+}
+
+// AddedPermissions returns the value that was added to the "permissions" field in this mutation.
+func (m *TokenMutation) AddedPermissions() (r int64, exists bool) {
+	v := m.addpermissions
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPermissions resets all changes to the "permissions" field.
+func (m *TokenMutation) ResetPermissions() {
+	m.permissions = nil
+	m.addpermissions = nil
 }
 
 // Where appends a list predicates to the TokenMutation builder.
@@ -2028,8 +2011,8 @@ func (m *TokenMutation) Fields() []string {
 	if m.created != nil {
 		fields = append(fields, token.FieldCreated)
 	}
-	if m.admin != nil {
-		fields = append(fields, token.FieldAdmin)
+	if m.permissions != nil {
+		fields = append(fields, token.FieldPermissions)
 	}
 	return fields
 }
@@ -2045,8 +2028,8 @@ func (m *TokenMutation) Field(name string) (ent.Value, bool) {
 		return m.Token()
 	case token.FieldCreated:
 		return m.Created()
-	case token.FieldAdmin:
-		return m.Admin()
+	case token.FieldPermissions:
+		return m.Permissions()
 	}
 	return nil, false
 }
@@ -2062,8 +2045,8 @@ func (m *TokenMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldToken(ctx)
 	case token.FieldCreated:
 		return m.OldCreated(ctx)
-	case token.FieldAdmin:
-		return m.OldAdmin(ctx)
+	case token.FieldPermissions:
+		return m.OldPermissions(ctx)
 	}
 	return nil, fmt.Errorf("unknown Token field %s", name)
 }
@@ -2094,12 +2077,12 @@ func (m *TokenMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreated(v)
 		return nil
-	case token.FieldAdmin:
-		v, ok := value.(bool)
+	case token.FieldPermissions:
+		v, ok := value.(uint64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAdmin(v)
+		m.SetPermissions(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Token field %s", name)
@@ -2108,13 +2091,21 @@ func (m *TokenMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *TokenMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addpermissions != nil {
+		fields = append(fields, token.FieldPermissions)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *TokenMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case token.FieldPermissions:
+		return m.AddedPermissions()
+	}
 	return nil, false
 }
 
@@ -2123,6 +2114,13 @@ func (m *TokenMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TokenMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case token.FieldPermissions:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPermissions(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Token numeric field %s", name)
 }
@@ -2159,8 +2157,8 @@ func (m *TokenMutation) ResetField(name string) error {
 	case token.FieldCreated:
 		m.ResetCreated()
 		return nil
-	case token.FieldAdmin:
-		m.ResetAdmin()
+	case token.FieldPermissions:
+		m.ResetPermissions()
 		return nil
 	}
 	return fmt.Errorf("unknown Token field %s", name)

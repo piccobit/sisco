@@ -33,8 +33,4 @@ func init() {
 	tokenDescCreated := tokenFields[2].Descriptor()
 	// token.DefaultCreated holds the default value on creation for the created field.
 	token.DefaultCreated = tokenDescCreated.Default.(time.Time)
-	// tokenDescAdmin is the schema descriptor for admin field.
-	tokenDescAdmin := tokenFields[3].Descriptor()
-	// token.DefaultAdmin holds the default value on creation for the admin field.
-	token.DefaultAdmin = tokenDescAdmin.Default.(bool)
 }

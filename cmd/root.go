@@ -67,14 +67,14 @@ func execLogin(cmd *cobra.Command, args []string) {
 		exit.Fatalln(1, err)
 	}
 
-	bearerToken, isAdminToken, err := grpcClient.Login(args[0], args[1])
+	bearerToken, permissions, err := grpcClient.Login(args[0], args[1])
 	if err != nil {
 		exit.Fatalln(1, err)
 	}
 
 	fmt.Println(utils.JSONify(AuthTokenInfo{
-		Token:        bearerToken,
-		IsAdminToken: isAdminToken,
+		Token:       bearerToken,
+		Permissions: permissions,
 	}, pretty))
 }
 

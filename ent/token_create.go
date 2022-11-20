@@ -46,17 +46,9 @@ func (tc *TokenCreate) SetNillableCreated(t *time.Time) *TokenCreate {
 	return tc
 }
 
-// SetAdmin sets the "admin" field.
-func (tc *TokenCreate) SetAdmin(b bool) *TokenCreate {
-	tc.mutation.SetAdmin(b)
-	return tc
-}
-
-// SetNillableAdmin sets the "admin" field if the given value is not nil.
-func (tc *TokenCreate) SetNillableAdmin(b *bool) *TokenCreate {
-	if b != nil {
-		tc.SetAdmin(*b)
-	}
+// SetPermissions sets the "permissions" field.
+func (tc *TokenCreate) SetPermissions(u uint64) *TokenCreate {
+	tc.mutation.SetPermissions(u)
 	return tc
 }
 
@@ -141,10 +133,6 @@ func (tc *TokenCreate) defaults() {
 		v := token.DefaultCreated
 		tc.mutation.SetCreated(v)
 	}
-	if _, ok := tc.mutation.Admin(); !ok {
-		v := token.DefaultAdmin
-		tc.mutation.SetAdmin(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -158,8 +146,8 @@ func (tc *TokenCreate) check() error {
 	if _, ok := tc.mutation.Created(); !ok {
 		return &ValidationError{Name: "created", err: errors.New(`ent: missing required field "Token.created"`)}
 	}
-	if _, ok := tc.mutation.Admin(); !ok {
-		return &ValidationError{Name: "admin", err: errors.New(`ent: missing required field "Token.admin"`)}
+	if _, ok := tc.mutation.Permissions(); !ok {
+		return &ValidationError{Name: "permissions", err: errors.New(`ent: missing required field "Token.permissions"`)}
 	}
 	return nil
 }
@@ -200,9 +188,9 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 		_spec.SetField(token.FieldCreated, field.TypeTime, value)
 		_node.Created = value
 	}
-	if value, ok := tc.mutation.Admin(); ok {
-		_spec.SetField(token.FieldAdmin, field.TypeBool, value)
-		_node.Admin = value
+	if value, ok := tc.mutation.Permissions(); ok {
+		_spec.SetField(token.FieldPermissions, field.TypeUint64, value)
+		_node.Permissions = value
 	}
 	return _node, _spec
 }

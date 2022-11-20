@@ -22,8 +22,8 @@ type Token struct {
 	Token string `json:"token,omitempty"`
 	// Created holds the value of the "created" field.
 	Created time.Time `json:"created,omitempty"`
-	// Admin holds the value of the "admin" field.
-	Admin bool `json:"admin,omitempty"`
+	// Permissions holds the value of the "permissions" field.
+	Permissions uint64 `json:"permissions,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -31,9 +31,7 @@ func (*Token) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case token.FieldAdmin:
-			values[i] = new(sql.NullBool)
-		case token.FieldID:
+		case token.FieldID, token.FieldPermissions:
 			values[i] = new(sql.NullInt64)
 		case token.FieldUser, token.FieldToken:
 			values[i] = new(sql.NullString)
@@ -78,11 +76,11 @@ func (t *Token) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.Created = value.Time
 			}
-		case token.FieldAdmin:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field admin", values[i])
+		case token.FieldPermissions:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field permissions", values[i])
 			} else if value.Valid {
-				t.Admin = value.Bool
+				t.Permissions = uint64(value.Int64)
 			}
 		}
 	}
@@ -121,8 +119,8 @@ func (t *Token) String() string {
 	builder.WriteString("created=")
 	builder.WriteString(t.Created.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("admin=")
-	builder.WriteString(fmt.Sprintf("%v", t.Admin))
+	builder.WriteString("permissions=")
+	builder.WriteString(fmt.Sprintf("%v", t.Permissions))
 	builder.WriteByte(')')
 	return builder.String()
 }
