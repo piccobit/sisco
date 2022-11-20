@@ -13,7 +13,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		return &pb.ListServiceReply{}, err
 	}
 
-	se, err := dbConn.QueryServiceInArea(ctx, in.GetName(), in.GetArea())
+	se, err := dbConn.QueryService(ctx, in.GetName(), in.GetArea())
 	if err != nil {
 		return &pb.ListServiceReply{}, err
 	}

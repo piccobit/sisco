@@ -79,20 +79,12 @@ func (c *Client) QueryAreas(ctx context.Context) ([]*ent.Area, error) {
 	return c.dbClient.Area.Query().WithServices().Order(ent.Asc(area.FieldID)).Order(ent.Asc(service.FieldID)).All(ctx)
 }
 
-func (c *Client) QueryServiceInArea(ctx context.Context, serviceName string, areaName string) (*ent.Service, error) {
+func (c *Client) QueryService(ctx context.Context, serviceName string, areaName string) (*ent.Service, error) {
 	return c.dbClient.Service.Query().
 		Where(service.And(service.Name(serviceName), service.HasAreaWith(area.Name(areaName)))).
 		WithTags().
 		Order(ent.Asc(service.FieldID)).
 		Only(ctx)
-}
-
-func (c *Client) QueryServicesInArea(ctx context.Context, areaName string) ([]*ent.Service, error) {
-	return c.dbClient.Service.Query().
-		Where(service.HasAreaWith(area.Name(areaName))).
-		WithTags().
-		Order(ent.Asc(service.FieldID)).
-		All(ctx)
 }
 
 func (c *Client) QueryServices(ctx context.Context, areaName string, tagName string) ([]*ent.Service, error) {

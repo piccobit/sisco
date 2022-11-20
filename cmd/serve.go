@@ -262,12 +262,12 @@ func apiDeleteTag(c *gin.Context) {
 	})
 }
 
-func apiListServicesInArea(c *gin.Context) {
+func apiListServices(c *gin.Context) {
 	ctx := context.Background()
 
 	paramArea := c.Param("area")
 
-	s, err := dbConn.QueryServicesInArea(ctx, paramArea)
+	s, err := dbConn.QueryServices(ctx, paramArea, "")
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -428,8 +428,9 @@ func apiHeartbeat(c *gin.Context) {
 	ctx := context.Background()
 
 	paramService := c.Param("service")
+	paramArea := c.Param("area")
 
-	err := dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, true, time.Now())
+	err := dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, paramArea, true, time.Now())
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -501,7 +502,12 @@ func checkHeartbeats() {
 	for _, e := range l {
 		if e.Available {
 			if int(time.Now().Sub(e.Heartbeat).Seconds()) > cfg.Config.HeartbeatCheckInSeconds {
-				err := dbConn.UpdateServiceAvailable(ctx, e.Name, false)
+				inArea, err := e.Edges.AreaOrErr()
+				if err != nil {
+					exit.Fatalf(1, "could not get service area: %v", err)
+				}
+
+				err = dbConn.UpdateServiceAvailable(ctx, e.Name, inArea.Name, false)
 				if err != nil {
 					exit.Fatalf(1, "could not update service availability: %w", err)
 				}
@@ -529,12 +535,12 @@ func setupAPIRouter() *gin.Engine {
 	listGroup := v1Group.Group("/list", checkToken(false))
 	listGroup.GET("/areas", apiListAreas)
 	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
-	listGroup.GET("/services/in/:area", apiListServicesInArea)
+	listGroup.GET("/services/in/:area", apiListServices)
 	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
 	listGroup.GET("/tags", apiListTags)
 
 	adminGroup := v1Group.Group("/admin", checkToken(true))
-	adminGroup.PUT("/heartbeat/:service", apiHeartbeat)
+	adminGroup.PUT("/heartbeat/:service/:area", apiHeartbeat)
 
 	registerGroup := adminGroup.Group("/register")
 	registerGroup.POST("/area/:area", apiRegisterArea)
