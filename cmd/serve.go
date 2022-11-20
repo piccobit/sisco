@@ -525,7 +525,6 @@ func setupAPIRouter() *gin.Engine {
 
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
-	v1Group.PUT("/heartbeat/:service", checkToken(true), apiHeartbeat)
 
 	listGroup := v1Group.Group("/list", checkToken(false))
 	listGroup.GET("/areas", apiListAreas)
@@ -535,6 +534,7 @@ func setupAPIRouter() *gin.Engine {
 	listGroup.GET("/tags", apiListTags)
 
 	adminGroup := v1Group.Group("/admin", checkToken(true))
+	adminGroup.PUT("/heartbeat/:service", apiHeartbeat)
 
 	registerGroup := adminGroup.Group("/register")
 	registerGroup.POST("/area/:area", apiRegisterArea)
