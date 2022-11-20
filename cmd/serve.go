@@ -90,18 +90,18 @@ func serve() {
 
 	<-quit
 
-	log.Println("Shutdown servers ...")
+	log.Println("Shutdown servers...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	log.Println("HTTP server is shutting down ...")
+	log.Println("HTTP server is shutting down...")
 
 	if err := httpSrv.Shutdown(ctx); err != nil {
 		log.Fatalf("server shutdown failed: %v", err)
 	}
 
-	log.Println("gRPC server is shutting down ...")
+	log.Println("gRPC server is shutting down...")
 
 	grpcSrv.GracefulStop()
 
