@@ -27,7 +27,7 @@ func (c *Client) CheckToken(ctx context.Context, bearer string, permissions auth
 	}
 
 	if (auth.Permissions(t.Permissions) & permissions) == 0 {
-		err = errors.New("token is not an admin token")
+		err = errors.New("permission denied")
 		return false, err
 	}
 
