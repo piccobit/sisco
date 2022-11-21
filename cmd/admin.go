@@ -67,6 +67,15 @@ var adminDeleteServiceCmd = &cobra.Command{
 	},
 }
 
+var adminHeartbeatCmd = &cobra.Command{
+	Use:   "heartbeat [service name] [area name]",
+	Short: "Trigger service heartbeat",
+	Long:  `Trigger the heartbeat of a service.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		execAdminHeartbeat(cmd, args)
+	},
+}
+
 var adminCmd = &cobra.Command{
 	Use:   "admin",
 	Short: "Administrate sisco",
@@ -76,10 +85,13 @@ var adminCmd = &cobra.Command{
 func init() {
 	adminRegisterCmd.AddCommand(adminRegisterAreaCmd)
 	adminRegisterCmd.AddCommand(adminRegisterServiceCmd)
+
 	adminDeleteCmd.AddCommand(adminDeleteAreaCmd)
 	adminDeleteCmd.AddCommand(adminDeleteServiceCmd)
+
 	adminCmd.AddCommand(adminRegisterCmd)
 	adminCmd.AddCommand(adminDeleteCmd)
+	adminCmd.AddCommand(adminHeartbeatCmd)
 
 	rootCmd.AddCommand(adminCmd)
 }
@@ -149,6 +161,24 @@ func execAdminDeleteService(cmd *cobra.Command, args []string) {
 	}
 
 	err = rpcClient.DeleteService(getToken(), args[0], args[1])
+	if err == nil {
+		fmt.Println(utils.JSONify(StatusCode{Status: "OK"}, pretty))
+	} else {
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+	}
+}
+
+func execAdminHeartbeat(cmd *cobra.Command, args []string) {
+	if len(args) != 2 {
+		exit.Fatalln(1, cmd.Usage())
+	}
+
+	rpcClient, err := crpc.Default()
+	if err != nil {
+		exit.Fatalln(1, utils.JSONify(StatusCode{"NOT OK", err.Error()}, pretty))
+	}
+
+	err = rpcClient.Heartbeat(getToken(), args[0], args[1])
 	if err == nil {
 		fmt.Println(utils.JSONify(StatusCode{Status: "OK"}, pretty))
 	} else {

@@ -55,7 +55,7 @@ func (c *Client) ListService(bearer string, serviceName string, areaName string)
 		Available:   r.GetService().GetAvailable(),
 	}
 
-	return &data, err
+	return &data, nil
 }
 
 func (c *Client) ListServices(bearer string, areaName string, tagName string) ([]*Service, error) {
@@ -92,7 +92,7 @@ func (c *Client) ListServices(bearer string, areaName string, tagName string) ([
 		data = append(data, &d)
 	}
 
-	return data, err
+	return data, nil
 }
 
 func (c *Client) ListAreas(bearer string) ([]*Area, error) {

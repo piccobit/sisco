@@ -163,3 +163,18 @@ message Tag {
 message ListTagsReply {
   repeated Tag tags = 1;
 }
+
+// Heartbeat
+
+service Heartbeat {
+  rpc Heartbeat (HeartbeatRequest) returns (HeartbeatReply) {}
+}
+
+message HeartbeatRequest {
+  string bearer = 1;
+  string service = 2;
+  string area = 3;
+}
+
+message HeartbeatReply {
+}

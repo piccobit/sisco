@@ -791,3 +791,89 @@ var ListTags_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "pb/pb.proto",
 }
+
+// HeartbeatClient is the client API for Heartbeat service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type HeartbeatClient interface {
+	Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatReply, error)
+}
+
+type heartbeatClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewHeartbeatClient(cc grpc.ClientConnInterface) HeartbeatClient {
+	return &heartbeatClient{cc}
+}
+
+func (c *heartbeatClient) Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatReply, error) {
+	out := new(HeartbeatReply)
+	err := c.cc.Invoke(ctx, "/pb.Heartbeat/Heartbeat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// HeartbeatServer is the server API for Heartbeat service.
+// All implementations must embed UnimplementedHeartbeatServer
+// for forward compatibility
+type HeartbeatServer interface {
+	Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatReply, error)
+	mustEmbedUnimplementedHeartbeatServer()
+}
+
+// UnimplementedHeartbeatServer must be embedded to have forward compatible implementations.
+type UnimplementedHeartbeatServer struct {
+}
+
+func (UnimplementedHeartbeatServer) Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Heartbeat not implemented")
+}
+func (UnimplementedHeartbeatServer) mustEmbedUnimplementedHeartbeatServer() {}
+
+// UnsafeHeartbeatServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to HeartbeatServer will
+// result in compilation errors.
+type UnsafeHeartbeatServer interface {
+	mustEmbedUnimplementedHeartbeatServer()
+}
+
+func RegisterHeartbeatServer(s grpc.ServiceRegistrar, srv HeartbeatServer) {
+	s.RegisterService(&Heartbeat_ServiceDesc, srv)
+}
+
+func _Heartbeat_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HeartbeatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HeartbeatServer).Heartbeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Heartbeat/Heartbeat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HeartbeatServer).Heartbeat(ctx, req.(*HeartbeatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Heartbeat_ServiceDesc is the grpc.ServiceDesc for Heartbeat service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Heartbeat_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.Heartbeat",
+	HandlerType: (*HeartbeatServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Heartbeat",
+			Handler:    _Heartbeat_Heartbeat_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pb/pb.proto",
+}

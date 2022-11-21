@@ -24,7 +24,7 @@ func (c *Client) RegisterArea(bearer string, area string, description string) er
 		return errors.New(fmt.Sprintf("registering area failed: %s", err))
 	}
 
-	return err
+	return nil
 }
 
 func (c *Client) RegisterService(bearer string, serviceName string, areaName string, description string, protocol string, host string, port string, tags ...string) error {
@@ -48,5 +48,5 @@ func (c *Client) RegisterService(bearer string, serviceName string, areaName str
 		return errors.New(fmt.Sprintf("registering service failed: %s", err))
 	}
 
-	return err
+	return nil
 }

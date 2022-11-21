@@ -20,10 +20,10 @@ func (c *Client) DeleteArea(bearer string, areaName string) error {
 		Area:   areaName,
 	})
 	if err != nil {
-		return errors.New(fmt.Sprintf("delete area failed: %s", err))
+		return errors.New(fmt.Sprintf("deleting area failed: %s", err))
 	}
 
-	return err
+	return nil
 }
 
 func (c *Client) DeleteService(bearer string, serviceName string, areaName string) error {
@@ -39,8 +39,8 @@ func (c *Client) DeleteService(bearer string, serviceName string, areaName strin
 		Area:    areaName,
 	})
 	if err != nil {
-		return errors.New(fmt.Sprintf("delete area failed: %s", err))
+		return errors.New(fmt.Sprintf("deleting service failed: %s", err))
 	}
 
-	return err
+	return nil
 }

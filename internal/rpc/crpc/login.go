@@ -22,5 +22,5 @@ func (c *Client) Login(user string, password string) (string, auth.Permissions, 
 		return "", auth.Unknown, err
 	}
 
-	return r.GetToken(), auth.Permissions(r.GetPermissions()), err
+	return r.GetToken(), auth.Permissions(r.GetPermissions()), nil
 }

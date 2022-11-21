@@ -19,6 +19,7 @@ type server struct {
 	pb.UnimplementedListServicesServer
 	pb.UnimplementedListAreasServer
 	pb.UnimplementedListTagsServer
+	pb.UnimplementedHeartbeatServer
 }
 
 type Server struct {
@@ -78,6 +79,7 @@ func (s *Server) Run() {
 	pb.RegisterListServicesServer(s.grpcServer, &server{})
 	pb.RegisterListAreasServer(s.grpcServer, &server{})
 	pb.RegisterListTagsServer(s.grpcServer, &server{})
+	pb.RegisterHeartbeatServer(s.grpcServer, &server{})
 
 	log.Printf("gRPC server listening at %v", lis.Addr())
 
