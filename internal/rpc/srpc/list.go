@@ -2,6 +2,8 @@ package srpc
 
 import (
 	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"sisco/internal/auth"
 	"sisco/internal/rpc/pb"
 )
@@ -11,12 +13,12 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 
 	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
-		return &pb.ListServiceReply{}, err
+		return &pb.ListServiceReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
 	se, err := dbConn.QueryService(ctx, in.GetName(), in.GetArea())
 	if err != nil {
-		return &pb.ListServiceReply{}, err
+		return &pb.ListServiceReply{}, status.Error(codes.Aborted, err.Error())
 	}
 
 	var tags []string
@@ -46,12 +48,12 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 
 	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
-		return &pb.ListServicesReply{}, err
+		return &pb.ListServicesReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
 	r, err := dbConn.QueryServices(ctx, in.GetArea(), in.GetTag())
 	if err != nil {
-		return &pb.ListServicesReply{}, err
+		return &pb.ListServicesReply{}, status.Error(codes.Aborted, err.Error())
 	}
 
 	var data []*pb.Service
@@ -86,12 +88,12 @@ func (s *server) ListAreas(ctx context.Context, in *pb.ListAreasRequest) (*pb.Li
 
 	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
-		return &pb.ListAreasReply{}, err
+		return &pb.ListAreasReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
 	r, err := dbConn.QueryAreas(ctx)
 	if err != nil {
-		return &pb.ListAreasReply{}, err
+		return &pb.ListAreasReply{}, status.Error(codes.Aborted, err.Error())
 	}
 
 	var data []*pb.Area
@@ -114,12 +116,12 @@ func (s *server) ListTags(ctx context.Context, in *pb.ListTagsRequest) (*pb.List
 
 	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
 	if !tokenIsValid || err != nil {
-		return &pb.ListTagsReply{}, err
+		return &pb.ListTagsReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
 	r, err := dbConn.QueryTags(ctx)
 	if err != nil {
-		return &pb.ListTagsReply{}, err
+		return &pb.ListTagsReply{}, status.Error(codes.Aborted, err.Error())
 	}
 
 	var data []*pb.Tag
