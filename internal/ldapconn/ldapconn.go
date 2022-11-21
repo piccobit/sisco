@@ -80,10 +80,10 @@ func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions
 
 	err = lc.ldapConn.Bind(dn, password)
 	if err != nil {
-		return auth.Admin, err
+		return auth.Unknown, err
 	}
 
-	return permissions, nil
+	return auth.User, nil
 }
 
 func replace(haystack string, needle string, replacement string) string {
