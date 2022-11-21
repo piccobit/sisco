@@ -462,7 +462,7 @@ func checkToken(permissions auth.Permissions) gin.HandlerFunc {
 		if len(bearer) == 0 {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		} else {
-			tokenIsValid, err := dbConn.CheckToken(ctx, bearer, auth.Admin)
+			tokenIsValid, err := dbConn.CheckToken(ctx, bearer, permissions)
 			if err != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {

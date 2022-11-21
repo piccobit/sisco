@@ -15,7 +15,7 @@ import (
 	"sisco/internal/cfg"
 )
 
-func (c *Client) CheckToken(ctx context.Context, bearer string, permissions uint64) (bool, error) {
+func (c *Client) CheckToken(ctx context.Context, bearer string, permissions auth.Permissions) (bool, error) {
 	t, err := c.dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
 	if err != nil {
 		return false, err
@@ -26,7 +26,7 @@ func (c *Client) CheckToken(ctx context.Context, bearer string, permissions uint
 		return false, err
 	}
 
-	if (t.Permissions & permissions) == 0 {
+	if (auth.Permissions(t.Permissions) & permissions) == 0 {
 		err = errors.New("token is not an admin token")
 		return false, err
 	}
