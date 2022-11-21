@@ -63,8 +63,6 @@ func init() {
 	listCmd.AddCommand(listAreasCmd)
 	listCmd.AddCommand(listTagsCmd)
 
-	listCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "auth token")
-
 	listServicesCmd.PersistentFlags().StringVarP(&inArea, "in-area", "i", "", "in area")
 	listServicesCmd.PersistentFlags().StringVarP(&withTag, "with-tag", "w", "", "with tag")
 
