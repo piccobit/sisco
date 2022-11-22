@@ -32,8 +32,11 @@ type Configuration struct {
 	LdapBaseDN              string   `yaml:"ldapBaseDN"`
 	LdapBindDN              string   `yaml:"ldapBindDN"`
 	LdapBindPassword        string   `yaml:"ldapBindPassword"`
-	LdapFilterUsersDN       string   `yaml:"ldapFilterUsersDN"`
-	LdapFilterAdminsDN      string   `yaml:"ldapFilterAdminsDN"`
+	LdapUsersGroupDN        string   `yaml:"ldapUsersGroupDN"`
+	LdapServicesGroupDN     string   `yaml:"ldapServicesGroupDN"`
+	LdapAdminsGroupDN       string   `yaml:"ldapAdminsGroupDN"`
+	LdapFilterUserDN        string   `yaml:"ldapFilterUserDN"`
+	LdapFilterGroupDN       string   `yaml:"ldapFilterGroupDN"`
 	TokenValidInSeconds     int      `yaml:"tokenValidInSeconds"`
 	HeartbeatCheckInSeconds int      `yaml:"heartbeatCheckInSeconds"`
 }

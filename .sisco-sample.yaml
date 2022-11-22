@@ -17,10 +17,13 @@ ldapURL: "ldap://localhost:3893"
 ldapBaseDN: "DC=example,DC=com"
 ldapBindDN: "CN=JohnDoe,OU=users,DC=example,DC=com"
 ldapBindPassword: "<your-ldap-password>"
-ldapFilterUsersDN: "(&(objectClass=posixAccount)(memberOf=OU=users,OU=groups,DC=example,DC=com)(uid={user}))"
-ldapFilterAdminsDN: "(&(objectClass=posixAccount)(memberOf=OU=admins,OU=groups,DC=example,DC=com)(uid={user}))"
+ldapUsersGroupDN: "ou=Users,ou=users,dc=example,dc=com"
+ldapServicesGroupDN: "ou=Services,ou=users,dc=example,dc=com"
+ldapAdminsGroupDN: "ou=Admins,ou=users,dc=example,dc=com"
+ldapFilterUserDN: "(&(objectClass=posixAccount)(uid={user}))"
+ldapFilterGroupDN: "(&(objectClass=posixGroup)(memberUid={user}))"
 # Active Directory
-ldapFilterUsersDN: "(&(objectClass=person)(memberOf=OU=users,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
-ldapFilterAdminsDN: "(&(objectClass=person)(memberOf=OU=admins,OU=groups,DC=example,DC=com)(sAMAccountName={user}))"
+# ldapFilterUserDN: "(&(objectClass=user)(sAMAccountname={user}))"
+# ldapFilterGroupDN: "(&(objectClass=group)(memberUid={user}))"
 tokenValidInSeconds: 1800 # seconds
 heartbeatCheckInSeconds: 30

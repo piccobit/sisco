@@ -46,34 +46,38 @@ func New(cfg *cfg.Configuration) (*LDAPConn, error) {
 func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions, error) {
 	var err error
 
-	// We check first if this is an 'admin' token.
+	needles := []needle{
+		{
+			search:      "{user}",
+			replacement: ldap.EscapeFilter(user),
+		},
+	}
 
-	permissions := auth.Unknown
+	filter := replace(lc.config.LdapFilterUserDN, &needles)
 
-	filter := replace(lc.config.LdapFilterAdminsDN, "{user}", ldap.EscapeFilter(user))
+	attributes := []string{
+		"dn",
+	}
 
-	searchReq := ldap.NewSearchRequest(lc.config.LdapBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, filter, []string{"dn"}, []ldap.Control{})
+	searchReq := ldap.NewSearchRequest(
+		lc.config.LdapBaseDN,
+		ldap.ScopeWholeSubtree,
+		ldap.NeverDerefAliases,
+		0,
+		0,
+		false,
+		filter,
+		attributes,
+		[]ldap.Control{},
+	)
 
 	result, err := lc.ldapConn.Search(searchReq)
 	if err != nil {
 		return auth.Unknown, err
 	}
 
-	if len(result.Entries) != 0 {
-		permissions = permissions | auth.Admin
-	} else {
-		filter = replace(lc.config.LdapFilterUsersDN, "{user}", ldap.EscapeFilter(user))
-
-		searchReq = ldap.NewSearchRequest(lc.config.LdapBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, filter, []string{"dn"}, []ldap.Control{})
-
-		result, err = lc.ldapConn.Search(searchReq)
-		if err != nil {
-			return auth.Admin, err
-		}
-
-		if len(result.Entries) == 0 {
-			return auth.Admin, errors.New("user not found")
-		}
+	if len(result.Entries) == 0 {
+		return auth.Unknown, err
 	}
 
 	dn := result.Entries[0].DN
@@ -83,18 +87,64 @@ func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions
 		return auth.Unknown, err
 	}
 
-	return auth.User, nil
-}
+	filter = replace(lc.config.LdapFilterGroupDN, &needles)
 
-func replace(haystack string, needle string, replacement string) string {
-	res := strings.Replace(
-		haystack,
-		needle,
-		replacement,
-		-1,
+	attributes = []string{
+		"cn",
+	}
+
+	searchReq = ldap.NewSearchRequest(
+		lc.config.LdapBaseDN,
+		ldap.ScopeWholeSubtree,
+		ldap.NeverDerefAliases,
+		0,
+		0,
+		false,
+		filter,
+		attributes,
+		[]ldap.Control{},
 	)
 
-	return res
+	result, err = lc.ldapConn.Search(searchReq)
+	if err != nil {
+		return auth.Unknown, err
+	}
+
+	permissions := auth.Unknown
+
+	for _, e := range result.Entries {
+		if strings.EqualFold(e.DN, cfg.Config.LdapUsersGroupDN) {
+			permissions = permissions | auth.User
+		}
+
+		if strings.EqualFold(e.DN, cfg.Config.LdapServicesGroupDN) {
+			permissions = permissions | auth.Service
+		}
+
+		if strings.EqualFold(e.DN, cfg.Config.LdapAdminsGroupDN) {
+			permissions = permissions | auth.Admin
+		}
+	}
+
+	return permissions, nil
+}
+
+type needle struct {
+	search      string
+	replacement string
+}
+
+func replace(haystack string, needles *[]needle) string {
+	for _, e := range *needles {
+		haystack = strings.Replace(
+			haystack,
+			e.search,
+			e.replacement,
+			-1,
+		)
+	}
+
+	return haystack
 }
 
 func (lc *LDAPConn) reconnect() error {
