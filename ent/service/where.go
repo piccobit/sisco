@@ -130,6 +130,13 @@ func Heartbeat(v time.Time) predicate.Service {
 	})
 }
 
+// Owner applies equality check predicate on the "owner" field. It's identical to OwnerEQ.
+func Owner(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOwner), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
@@ -714,6 +721,105 @@ func HeartbeatLT(v time.Time) predicate.Service {
 func HeartbeatLTE(v time.Time) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldHeartbeat), v))
+	})
+}
+
+// OwnerEQ applies the EQ predicate on the "owner" field.
+func OwnerEQ(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerNEQ applies the NEQ predicate on the "owner" field.
+func OwnerNEQ(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerIn applies the In predicate on the "owner" field.
+func OwnerIn(vs ...string) predicate.Service {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOwner), v...))
+	})
+}
+
+// OwnerNotIn applies the NotIn predicate on the "owner" field.
+func OwnerNotIn(vs ...string) predicate.Service {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOwner), v...))
+	})
+}
+
+// OwnerGT applies the GT predicate on the "owner" field.
+func OwnerGT(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerGTE applies the GTE predicate on the "owner" field.
+func OwnerGTE(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerLT applies the LT predicate on the "owner" field.
+func OwnerLT(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerLTE applies the LTE predicate on the "owner" field.
+func OwnerLTE(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerContains applies the Contains predicate on the "owner" field.
+func OwnerContains(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerHasPrefix applies the HasPrefix predicate on the "owner" field.
+func OwnerHasPrefix(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerHasSuffix applies the HasSuffix predicate on the "owner" field.
+func OwnerHasSuffix(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerEqualFold applies the EqualFold predicate on the "owner" field.
+func OwnerEqualFold(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldOwner), v))
+	})
+}
+
+// OwnerContainsFold applies the ContainsFold predicate on the "owner" field.
+func OwnerContainsFold(v string) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldOwner), v))
 	})
 }
 

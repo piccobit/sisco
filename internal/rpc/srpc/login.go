@@ -10,7 +10,7 @@ import (
 )
 
 func (s *server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginReply, error) {
-	authToken, permissions, err := dbConn.QuerySecretToken(ctx, in.GetUser(), in.GetPassword())
+	authToken, permissions, err := dbConn.QueryAuthToken(ctx, in.GetUser(), in.GetPassword())
 	if err != nil {
 		return &pb.LoginReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}

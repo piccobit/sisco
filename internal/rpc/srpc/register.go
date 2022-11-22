@@ -9,10 +9,8 @@ import (
 )
 
 func (s *server) RegisterArea(ctx context.Context, in *pb.RegisterAreaRequest) (*pb.RegisterAreaReply, error) {
-	var err error
-
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin)
-	if !tokenIsValid || err != nil {
+	token, err := dbConn.QueryAuthTokenInfo(ctx, in.GetBearer(), auth.Admin)
+	if !token.IsValid || err != nil {
 		return &pb.RegisterAreaReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
@@ -27,14 +25,15 @@ func (s *server) RegisterArea(ctx context.Context, in *pb.RegisterAreaRequest) (
 func (s *server) RegisterService(ctx context.Context, in *pb.RegisterServiceRequest) (*pb.RegisterServiceReply, error) {
 	var err error
 
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service)
-	if !tokenIsValid || err != nil {
+	token, err := dbConn.QueryAuthTokenInfo(ctx, in.GetBearer(), auth.Admin|auth.Service)
+	if !token.IsValid || err != nil {
 		return &pb.RegisterServiceReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
 	err = dbConn.CreateService(ctx,
 		in.GetService(),
 		in.GetArea(),
+		token.Requester,
 		in.GetDescription(),
 		in.GetProtocol(),
 		in.GetHost(),

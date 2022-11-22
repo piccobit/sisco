@@ -207,10 +207,21 @@ func apiGetServiceInArea(c *gin.Context) {
 func apiDeleteService(c *gin.Context) {
 	ctx := context.Background()
 
+	bearer := c.Request.Header.Get("Bearer")
+
+	token, err := dbConn.QueryToken(ctx, bearer)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
 	paramArea := c.Param("area")
 	paramService := c.Param("service")
 
-	err := dbConn.DeleteService(ctx, paramService, paramArea)
+	err = dbConn.DeleteService(ctx, paramService, paramArea, token.User)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -339,7 +350,18 @@ func apiRegisterService(c *gin.Context) {
 		return
 	}
 
-	err = dbConn.CreateService(ctx, serviceParam, areaParam, rs.Description, rs.Protocol, rs.Host, rs.Port, rs.Tags)
+	bearer := c.Request.Header.Get("Bearer")
+
+	token, err := dbConn.QueryToken(ctx, bearer)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	err = dbConn.CreateService(ctx, serviceParam, areaParam, token.User, rs.Description, rs.Protocol, rs.Host, rs.Port, rs.Tags)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -401,7 +423,7 @@ func apiLogin(c *gin.Context) {
 		return
 	}
 
-	authToken, isAdminToken, err := dbConn.QuerySecretToken(ctx, l.User, l.Password)
+	authToken, isAdminToken, err := dbConn.QueryAuthToken(ctx, l.User, l.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
@@ -431,7 +453,18 @@ func apiHeartbeat(c *gin.Context) {
 	paramService := c.Param("service")
 	paramArea := c.Param("area")
 
-	err := dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, paramArea, true, time.Now())
+	bearer := c.Request.Header.Get("Bearer")
+
+	token, err := dbConn.QueryToken(ctx, bearer)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	err = dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, paramArea, token.User, true, time.Now())
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -453,7 +486,7 @@ func apiHeartbeat(c *gin.Context) {
 	}
 }
 
-func checkToken(permissions auth.Permissions) gin.HandlerFunc {
+func checkPermissions(permissions auth.Permissions) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -462,14 +495,14 @@ func checkToken(permissions auth.Permissions) gin.HandlerFunc {
 		if len(bearer) == 0 {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		} else {
-			tokenIsValid, err := dbConn.CheckToken(ctx, bearer, permissions)
+			token, err := dbConn.QueryAuthTokenInfo(ctx, bearer, permissions)
 			if err != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
-				if tokenIsValid {
-					c.Next()
-				} else {
+				if !token.IsValid {
 					c.AbortWithStatus(http.StatusUnauthorized)
+				} else {
+					c.Next()
 				}
 			}
 		}
@@ -508,7 +541,7 @@ func checkHeartbeats() {
 					exit.Fatalf(1, "could not get service area: %v", err)
 				}
 
-				err = dbConn.UpdateServiceAvailable(ctx, e.Name, inArea.Name, false)
+				err = dbConn.UpdateServiceAvailable(ctx, e.Name, inArea.Name, e.Owner, false)
 				if err != nil {
 					exit.Fatalf(1, "could not update service availability: %w", err)
 				}
@@ -533,22 +566,22 @@ func setupAPIRouter() *gin.Engine {
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
 
-	listGroup := v1Group.Group("/list", checkToken(auth.Admin|auth.Service|auth.User))
+	listGroup := v1Group.Group("/list", checkPermissions(auth.Admin|auth.Service|auth.User))
 	listGroup.GET("/areas", apiListAreas)
 	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
 	listGroup.GET("/services/in/:area", apiListServices)
 	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
 	listGroup.GET("/tags", apiListTags)
 
-	adminGroup := v1Group.Group("/admin", checkToken(auth.Admin|auth.Service))
+	adminGroup := v1Group.Group("/admin", checkPermissions(auth.Admin|auth.Service))
 	adminGroup.PUT("/heartbeat/:service/:area", apiHeartbeat)
 
 	registerGroup := adminGroup.Group("/register")
-	registerGroup.POST("/area/:area", apiRegisterArea, checkToken(auth.Admin))
+	registerGroup.POST("/area/:area", apiRegisterArea, checkPermissions(auth.Admin))
 	registerGroup.POST("/service/:service/in/:area", apiRegisterService)
 
 	deleteGroup := adminGroup.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkToken(auth.Admin))
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.Admin))
 	deleteGroup.DELETE("/area/:area", apiDeleteArea)
 	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
 

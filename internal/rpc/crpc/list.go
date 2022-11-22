@@ -22,6 +22,7 @@ type Service struct {
 	Port        string   `json:"port"`
 	Tags        []string ` json:"tags"`
 	Available   bool     `json:"available"`
+	Owner       string   `json:"owner"`
 }
 
 type Tag struct {
@@ -53,6 +54,7 @@ func (c *Client) ListService(bearer string, serviceName string, areaName string)
 		Port:        r.GetService().GetPort(),
 		Tags:        r.GetService().GetTags(),
 		Available:   r.GetService().GetAvailable(),
+		Owner:       r.GetService().GetOwner(),
 	}
 
 	return &data, nil
@@ -88,6 +90,7 @@ func (c *Client) ListServices(bearer string, areaName string, tagName string) ([
 			Port:        pbs.GetPort(),
 			Tags:        pbs.GetTags(),
 			Available:   pbs.GetAvailable(),
+			Owner:       pbs.GetOwner(),
 		}
 		data = append(data, &d)
 	}

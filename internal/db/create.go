@@ -20,7 +20,7 @@ func (c *Client) CreateArea(ctx context.Context, area string, description string
 	return err
 }
 
-func (c *Client) CreateService(ctx context.Context, serviceName string, areaName string, description string, protocol string, host string, port string, serviceTags []string) error {
+func (c *Client) CreateService(ctx context.Context, serviceName string, areaName string, ownerName string, description string, protocol string, host string, port string, serviceTags []string) error {
 	if ok, err := c.dbClient.Area.Query().Where(area.Name(areaName)).Exist(ctx); !ok || err != nil {
 		return errors.New(fmt.Sprintf("area %s not found", areaName))
 	}
@@ -49,8 +49,12 @@ func (c *Client) CreateService(ctx context.Context, serviceName string, areaName
 		SetPort(port).
 		SetAvailable(true).
 		SetHeartbeat(time.Now()).
+		SetOwner(ownerName).
 		AddTags(tagEntries...).
 		Save(ctx)
+	if err != nil {
+		return err
+	}
 
 	_, err = c.dbClient.Area.Update().Where(area.Name(areaName)).AddServices(s).Save(ctx)
 	if err != nil {

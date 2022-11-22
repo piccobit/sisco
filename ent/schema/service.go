@@ -22,6 +22,7 @@ func (Service) Fields() []ent.Field {
 		field.String("port"),
 		field.Bool("available").Default(false),
 		field.Time("heartbeat").Default(time.Now()),
+		field.String("owner"),
 	}
 }
 

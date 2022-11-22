@@ -15,26 +15,42 @@ import (
 	"sisco/internal/cfg"
 )
 
-func (c *Client) CheckToken(ctx context.Context, bearer string, permissions auth.Permissions) (bool, error) {
+func (c *Client) QueryAuthTokenInfo(ctx context.Context, bearer string, permissions auth.Permissions) (*auth.TokenInfo, error) {
+	unknown := auth.TokenInfo{
+		IsValid:   false,
+		Requester: "",
+		Perms:     auth.Unknown,
+	}
+
 	t, err := c.dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
 	if err != nil {
-		return false, err
+		return &unknown, err
 	}
 
 	if int(time.Now().Sub(t.Created).Seconds()) > cfg.Config.TokenValidInSeconds {
 		err = errors.New("token is not valid anymore")
-		return false, err
+		return &unknown, err
 	}
 
 	if (auth.Permissions(t.Permissions) & permissions) == 0 {
 		err = errors.New("permission denied")
-		return false, err
+		return &unknown, err
 	}
 
-	return true, nil
+	info := auth.TokenInfo{
+		IsValid:   true,
+		Requester: t.User,
+		Perms:     auth.Permissions(t.Permissions),
+	}
+
+	return &info, nil
 }
 
-func (c *Client) QuerySecretToken(ctx context.Context, user string, password string) (string, auth.Permissions, error) {
+func (c *Client) QueryToken(ctx context.Context, bearer string) (*ent.Token, error) {
+	return c.dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
+}
+
+func (c *Client) QueryAuthToken(ctx context.Context, user string, password string) (string, auth.Permissions, error) {
 	var err error
 
 	authToken := auth.GenerateSecureToken(32)

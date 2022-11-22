@@ -503,6 +503,7 @@ type ServiceMutation struct {
 	port          *string
 	available     *bool
 	heartbeat     *time.Time
+	owner         *string
 	clearedFields map[string]struct{}
 	tags          map[int]struct{}
 	removedtags   map[int]struct{}
@@ -877,6 +878,42 @@ func (m *ServiceMutation) ResetHeartbeat() {
 	m.heartbeat = nil
 }
 
+// SetOwner sets the "owner" field.
+func (m *ServiceMutation) SetOwner(s string) {
+	m.owner = &s
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *ServiceMutation) Owner() (r string, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldOwner(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *ServiceMutation) ResetOwner() {
+	m.owner = nil
+}
+
 // AddTagIDs adds the "tags" edge to the Tag entity by ids.
 func (m *ServiceMutation) AddTagIDs(ids ...int) {
 	if m.tags == nil {
@@ -989,7 +1026,7 @@ func (m *ServiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, service.FieldName)
 	}
@@ -1010,6 +1047,9 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.heartbeat != nil {
 		fields = append(fields, service.FieldHeartbeat)
+	}
+	if m.owner != nil {
+		fields = append(fields, service.FieldOwner)
 	}
 	return fields
 }
@@ -1033,6 +1073,8 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.Available()
 	case service.FieldHeartbeat:
 		return m.Heartbeat()
+	case service.FieldOwner:
+		return m.Owner()
 	}
 	return nil, false
 }
@@ -1056,6 +1098,8 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldAvailable(ctx)
 	case service.FieldHeartbeat:
 		return m.OldHeartbeat(ctx)
+	case service.FieldOwner:
+		return m.OldOwner(ctx)
 	}
 	return nil, fmt.Errorf("unknown Service field %s", name)
 }
@@ -1113,6 +1157,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHeartbeat(v)
+		return nil
+	case service.FieldOwner:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
@@ -1192,6 +1243,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldHeartbeat:
 		m.ResetHeartbeat()
+		return nil
+	case service.FieldOwner:
+		m.ResetOwner()
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)

@@ -1,3 +1,5 @@
-h1:/oWsRF9saHFmASAuw2dn3BNueSxjo0D5t7/cd2cIfJY=
+h1:bR9+OJIn8Fs4/lRxmyltRJdqTkEEcFgavN1zR6pUpm4=
 20221122062743_initial.down.sql h1:QNbeMXfCDF/po5FtQAcOh2NwUiMdvSxBxtZSR0hQDIU=
 20221122062743_initial.up.sql h1:imowjc9DddNI6LbjYdfc13VmdVhnPpPRAjrZTF5eqYk=
+20221122063801_owner.down.sql h1:3NXWTgj5yzxT/JWqtJWenY3iJ+Os3icDgd3y+6wc0wk=
+20221122063801_owner.up.sql h1:KXWeUjQQjyQ9Ho9LSTXO/jPIKBrTAFveKQKF9kQ11vE=

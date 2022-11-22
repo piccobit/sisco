@@ -9,10 +9,8 @@ import (
 )
 
 func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*pb.ListServiceReply, error) {
-	var err error
-
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
-	if !tokenIsValid || err != nil {
+	token, err := dbConn.QueryAuthTokenInfo(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
+	if !token.IsValid || err != nil {
 		return &pb.ListServiceReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
@@ -36,6 +34,7 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 		Port:        se.Port,
 		Tags:        tags,
 		Available:   se.Available,
+		Owner:       se.Owner,
 	}
 
 	return &pb.ListServiceReply{
@@ -44,10 +43,8 @@ func (s *server) ListService(ctx context.Context, in *pb.ListServiceRequest) (*p
 }
 
 func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (*pb.ListServicesReply, error) {
-	var err error
-
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
-	if !tokenIsValid || err != nil {
+	token, err := dbConn.QueryAuthTokenInfo(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
+	if !token.IsValid || err != nil {
 		return &pb.ListServicesReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
@@ -74,6 +71,7 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 			Port:        d.Port,
 			Tags:        tags,
 			Available:   d.Available,
+			Owner:       d.Owner,
 		}
 		data = append(data, &e)
 	}
@@ -84,10 +82,8 @@ func (s *server) ListServices(ctx context.Context, in *pb.ListServicesRequest) (
 }
 
 func (s *server) ListAreas(ctx context.Context, in *pb.ListAreasRequest) (*pb.ListAreasReply, error) {
-	var err error
-
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
-	if !tokenIsValid || err != nil {
+	token, err := dbConn.QueryAuthTokenInfo(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
+	if !token.IsValid || err != nil {
 		return &pb.ListAreasReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
@@ -112,10 +108,8 @@ func (s *server) ListAreas(ctx context.Context, in *pb.ListAreasRequest) (*pb.Li
 }
 
 func (s *server) ListTags(ctx context.Context, in *pb.ListTagsRequest) (*pb.ListTagsReply, error) {
-	var err error
-
-	tokenIsValid, err := dbConn.CheckToken(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
-	if !tokenIsValid || err != nil {
+	token, err := dbConn.QueryAuthTokenInfo(ctx, in.GetBearer(), auth.Admin|auth.Service|auth.User)
+	if !token.IsValid || err != nil {
 		return &pb.ListTagsReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 

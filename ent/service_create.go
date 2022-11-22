@@ -88,6 +88,12 @@ func (sc *ServiceCreate) SetNillableHeartbeat(t *time.Time) *ServiceCreate {
 	return sc
 }
 
+// SetOwner sets the "owner" field.
+func (sc *ServiceCreate) SetOwner(s string) *ServiceCreate {
+	sc.mutation.SetOwner(s)
+	return sc
+}
+
 // AddTagIDs adds the "tags" edge to the Tag entity by IDs.
 func (sc *ServiceCreate) AddTagIDs(ids ...int) *ServiceCreate {
 	sc.mutation.AddTagIDs(ids...)
@@ -233,6 +239,9 @@ func (sc *ServiceCreate) check() error {
 	if _, ok := sc.mutation.Heartbeat(); !ok {
 		return &ValidationError{Name: "heartbeat", err: errors.New(`ent: missing required field "Service.heartbeat"`)}
 	}
+	if _, ok := sc.mutation.Owner(); !ok {
+		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required field "Service.owner"`)}
+	}
 	return nil
 }
 
@@ -287,6 +296,10 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Heartbeat(); ok {
 		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
 		_node.Heartbeat = value
+	}
+	if value, ok := sc.mutation.Owner(); ok {
+		_spec.SetField(service.FieldOwner, field.TypeString, value)
+		_node.Owner = value
 	}
 	if nodes := sc.mutation.TagsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

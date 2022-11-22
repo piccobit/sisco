@@ -13,6 +13,7 @@ message Service {
   string port = 6;
   bool available = 7;
   repeated string tags = 8;
+  string owner = 9;
 }
 
 // Login

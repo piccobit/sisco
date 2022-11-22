@@ -102,6 +102,12 @@ func (su *ServiceUpdate) SetNillableHeartbeat(t *time.Time) *ServiceUpdate {
 	return su
 }
 
+// SetOwner sets the "owner" field.
+func (su *ServiceUpdate) SetOwner(s string) *ServiceUpdate {
+	su.mutation.SetOwner(s)
+	return su
+}
+
 // AddTagIDs adds the "tags" edge to the Tag entity by IDs.
 func (su *ServiceUpdate) AddTagIDs(ids ...int) *ServiceUpdate {
 	su.mutation.AddTagIDs(ids...)
@@ -263,6 +269,9 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.Heartbeat(); ok {
 		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
+	}
+	if value, ok := su.mutation.Owner(); ok {
+		_spec.SetField(service.FieldOwner, field.TypeString, value)
 	}
 	if su.mutation.TagsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -441,6 +450,12 @@ func (suo *ServiceUpdateOne) SetNillableHeartbeat(t *time.Time) *ServiceUpdateOn
 	if t != nil {
 		suo.SetHeartbeat(*t)
 	}
+	return suo
+}
+
+// SetOwner sets the "owner" field.
+func (suo *ServiceUpdateOne) SetOwner(s string) *ServiceUpdateOne {
+	suo.mutation.SetOwner(s)
 	return suo
 }
 
@@ -635,6 +650,9 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	}
 	if value, ok := suo.mutation.Heartbeat(); ok {
 		_spec.SetField(service.FieldHeartbeat, field.TypeTime, value)
+	}
+	if value, ok := suo.mutation.Owner(); ok {
+		_spec.SetField(service.FieldOwner, field.TypeString, value)
 	}
 	if suo.mutation.TagsCleared() {
 		edge := &sqlgraph.EdgeSpec{

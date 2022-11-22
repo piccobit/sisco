@@ -25,6 +25,8 @@ const (
 	FieldAvailable = "available"
 	// FieldHeartbeat holds the string denoting the heartbeat field in the database.
 	FieldHeartbeat = "heartbeat"
+	// FieldOwner holds the string denoting the owner field in the database.
+	FieldOwner = "owner"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
 	// EdgeArea holds the string denoting the area edge name in mutations.
@@ -55,6 +57,7 @@ var Columns = []string{
 	FieldPort,
 	FieldAvailable,
 	FieldHeartbeat,
+	FieldOwner,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "services"
