@@ -35,8 +35,8 @@ type Configuration struct {
 	LdapUsersGroupDN        string   `yaml:"ldapUsersGroupDN"`
 	LdapServicesGroupDN     string   `yaml:"ldapServicesGroupDN"`
 	LdapAdminsGroupDN       string   `yaml:"ldapAdminsGroupDN"`
-	LdapFilterUserDN        string   `yaml:"ldapFilterUserDN"`
-	LdapFilterGroupDN       string   `yaml:"ldapFilterGroupDN"`
+	LdapFilterUser          string   `yaml:"ldapFilterUser"`
+	LdapFilterGroup         string   `yaml:"ldapFilterGroup"`
 	TokenValidInSeconds     int      `yaml:"tokenValidInSeconds"`
 	HeartbeatCheckInSeconds int      `yaml:"heartbeatCheckInSeconds"`
 }

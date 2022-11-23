@@ -20,10 +20,10 @@ ldapBindPassword: "<your-ldap-password>"
 ldapUsersGroupDN: "ou=Users,ou=users,dc=example,dc=com"
 ldapServicesGroupDN: "ou=Services,ou=users,dc=example,dc=com"
 ldapAdminsGroupDN: "ou=Admins,ou=users,dc=example,dc=com"
-ldapFilterUserDN: "(&(objectClass=posixAccount)(uid={user}))"
-ldapFilterGroupDN: "(&(objectClass=posixGroup)(memberUid={user}))"
+ldapFilterUser: "(&(objectClass=posixAccount)(uid={user}))"
+ldapFilterGroup: "(&(objectClass=posixGroup)(memberUid={user}))"
 # Active Directory
-# ldapFilterUserDN: "(&(objectClass=user)(sAMAccountname={user}))"
-# ldapFilterGroupDN: "(&(objectClass=group)(memberUid={user}))"
+# ldapFilterUser: "(&(objectClass=user)(sAMAccountname={user}))"
+# ldapFilterGroup: "(&(objectClass=group)(memberUid={user}))"
 tokenValidInSeconds: 1800 # seconds
 heartbeatCheckInSeconds: 30

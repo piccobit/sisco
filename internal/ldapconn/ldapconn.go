@@ -53,7 +53,7 @@ func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions
 		},
 	}
 
-	filter := replace(lc.config.LdapFilterUserDN, &needles)
+	filter := replace(lc.config.LdapFilterUser, &needles)
 
 	attributes := []string{
 		"dn",
@@ -87,7 +87,7 @@ func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions
 		return auth.Unknown, err
 	}
 
-	filter = replace(lc.config.LdapFilterGroupDN, &needles)
+	filter = replace(lc.config.LdapFilterGroup, &needles)
 
 	attributes = []string{
 		"cn",
