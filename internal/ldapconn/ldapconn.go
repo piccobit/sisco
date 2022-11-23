@@ -43,10 +43,19 @@ func New(cfg *cfg.Configuration) (*LDAPConn, error) {
 	return &lc, nil
 }
 
-func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions, error) {
+func (lc *LDAPConn) Authenticate(user string, password string) (string, auth.Permissions, error) {
 	var err error
+	var group string
 
 	needles := []needle{
+		{
+			search:      "{user_attribute}",
+			replacement: ldap.EscapeFilter(cfg.Config.LdapFilterUserAttribute),
+		},
+		{
+			search:      "{group_attribute}",
+			replacement: ldap.EscapeFilter(cfg.Config.LdapFilterGroupAttribute),
+		},
 		{
 			search:      "{user}",
 			replacement: ldap.EscapeFilter(user),
@@ -73,24 +82,25 @@ func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions
 
 	result, err := lc.ldapConn.Search(searchReq)
 	if err != nil {
-		return auth.Unknown, err
+		return "", auth.Unknown, err
 	}
 
 	if len(result.Entries) == 0 {
-		return auth.Unknown, err
+		return "", auth.Unknown, err
 	}
 
 	dn := result.Entries[0].DN
 
 	err = lc.ldapConn.Bind(dn, password)
 	if err != nil {
-		return auth.Unknown, err
+		return "", auth.Unknown, err
 	}
 
 	filter = replace(lc.config.LdapFilterGroup, &needles)
 
 	attributes = []string{
 		"cn",
+		"uid",
 	}
 
 	searchReq = ldap.NewSearchRequest(
@@ -107,26 +117,31 @@ func (lc *LDAPConn) Authenticate(user string, password string) (auth.Permissions
 
 	result, err = lc.ldapConn.Search(searchReq)
 	if err != nil {
-		return auth.Unknown, err
+		return "", auth.Unknown, err
 	}
 
 	permissions := auth.Unknown
 
 	for _, e := range result.Entries {
-		if strings.EqualFold(e.DN, cfg.Config.LdapUsersGroupDN) {
+		tmpGroup := e.GetAttributeValue("uid")
+
+		if strings.EqualFold(tmpGroup, cfg.Config.LdapUsersGroup) {
+			group = tmpGroup
 			permissions = permissions | auth.User
 		}
 
-		if strings.EqualFold(e.DN, cfg.Config.LdapServicesGroupDN) {
+		if strings.EqualFold(tmpGroup, cfg.Config.LdapServicesGroup) {
+			group = tmpGroup
 			permissions = permissions | auth.Service
 		}
 
-		if strings.EqualFold(e.DN, cfg.Config.LdapAdminsGroupDN) {
+		if strings.EqualFold(tmpGroup, cfg.Config.LdapAdminsGroup) {
+			group = tmpGroup
 			permissions = permissions | auth.Admin
 		}
 	}
 
-	return permissions, nil
+	return group, permissions, nil
 }
 
 type needle struct {

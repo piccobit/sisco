@@ -108,6 +108,13 @@ func Permissions(v uint64) predicate.Token {
 	})
 }
 
+// Group applies equality check predicate on the "group" field. It's identical to GroupEQ.
+func Group(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGroup), v))
+	})
+}
+
 // UserEQ applies the EQ predicate on the "user" field.
 func UserEQ(v string) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
@@ -431,6 +438,105 @@ func PermissionsLT(v uint64) predicate.Token {
 func PermissionsLTE(v uint64) predicate.Token {
 	return predicate.Token(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldPermissions), v))
+	})
+}
+
+// GroupEQ applies the EQ predicate on the "group" field.
+func GroupEQ(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGroup), v))
+	})
+}
+
+// GroupNEQ applies the NEQ predicate on the "group" field.
+func GroupNEQ(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldGroup), v))
+	})
+}
+
+// GroupIn applies the In predicate on the "group" field.
+func GroupIn(vs ...string) predicate.Token {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldGroup), v...))
+	})
+}
+
+// GroupNotIn applies the NotIn predicate on the "group" field.
+func GroupNotIn(vs ...string) predicate.Token {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldGroup), v...))
+	})
+}
+
+// GroupGT applies the GT predicate on the "group" field.
+func GroupGT(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldGroup), v))
+	})
+}
+
+// GroupGTE applies the GTE predicate on the "group" field.
+func GroupGTE(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldGroup), v))
+	})
+}
+
+// GroupLT applies the LT predicate on the "group" field.
+func GroupLT(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldGroup), v))
+	})
+}
+
+// GroupLTE applies the LTE predicate on the "group" field.
+func GroupLTE(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldGroup), v))
+	})
+}
+
+// GroupContains applies the Contains predicate on the "group" field.
+func GroupContains(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldGroup), v))
+	})
+}
+
+// GroupHasPrefix applies the HasPrefix predicate on the "group" field.
+func GroupHasPrefix(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldGroup), v))
+	})
+}
+
+// GroupHasSuffix applies the HasSuffix predicate on the "group" field.
+func GroupHasSuffix(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldGroup), v))
+	})
+}
+
+// GroupEqualFold applies the EqualFold predicate on the "group" field.
+func GroupEqualFold(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldGroup), v))
+	})
+}
+
+// GroupContainsFold applies the ContainsFold predicate on the "group" field.
+func GroupContainsFold(v string) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldGroup), v))
 	})
 }
 

@@ -24,6 +24,8 @@ type Token struct {
 	Created time.Time `json:"created,omitempty"`
 	// Permissions holds the value of the "permissions" field.
 	Permissions uint64 `json:"permissions,omitempty"`
+	// Group holds the value of the "group" field.
+	Group string `json:"group,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,7 +35,7 @@ func (*Token) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case token.FieldID, token.FieldPermissions:
 			values[i] = new(sql.NullInt64)
-		case token.FieldUser, token.FieldToken:
+		case token.FieldUser, token.FieldToken, token.FieldGroup:
 			values[i] = new(sql.NullString)
 		case token.FieldCreated:
 			values[i] = new(sql.NullTime)
@@ -82,6 +84,12 @@ func (t *Token) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.Permissions = uint64(value.Int64)
 			}
+		case token.FieldGroup:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field group", values[i])
+			} else if value.Valid {
+				t.Group = value.String
+			}
 		}
 	}
 	return nil
@@ -121,6 +129,9 @@ func (t *Token) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("permissions=")
 	builder.WriteString(fmt.Sprintf("%v", t.Permissions))
+	builder.WriteString(", ")
+	builder.WriteString("group=")
+	builder.WriteString(t.Group)
 	builder.WriteByte(')')
 	return builder.String()
 }

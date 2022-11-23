@@ -15,8 +15,8 @@ import (
 	"sisco/internal/cfg"
 )
 
-func (c *Client) QueryAuthTokenInfo(ctx context.Context, bearer string, permissions auth.Permissions) (*auth.TokenInfo, error) {
-	unknown := auth.TokenInfo{
+func (c *Client) QueryAuthTokenInfo(ctx context.Context, bearer string, permissions auth.Permissions) (*auth.Token, error) {
+	unknown := auth.Token{
 		IsValid:   false,
 		Requester: "",
 		Perms:     auth.Unknown,
@@ -37,9 +37,10 @@ func (c *Client) QueryAuthTokenInfo(ctx context.Context, bearer string, permissi
 		return &unknown, err
 	}
 
-	info := auth.TokenInfo{
+	info := auth.Token{
 		IsValid:   true,
 		Requester: t.User,
+		Group:     t.Group,
 		Perms:     auth.Permissions(t.Permissions),
 	}
 
@@ -60,7 +61,7 @@ func (c *Client) QueryAuthToken(ctx context.Context, user string, password strin
 		return "", auth.Unknown, nil
 	}
 
-	permissions, err := lc.Authenticate(user, password)
+	group, permissions, err := lc.Authenticate(user, password)
 	if err != nil {
 		return "", auth.Unknown, nil
 	}
@@ -70,6 +71,7 @@ func (c *Client) QueryAuthToken(ctx context.Context, user string, password strin
 		_, err = c.dbClient.Token.Create().
 			SetUser(user).
 			SetToken(authToken).
+			SetGroup(group).
 			SetPermissions(uint64(permissions)).
 			Save(ctx)
 		if err != nil {
@@ -79,7 +81,6 @@ func (c *Client) QueryAuthToken(ctx context.Context, user string, password strin
 		_, err = c.dbClient.Token.Update().
 			Where(token.User(user)).
 			SetToken(authToken).
-			SetPermissions(uint64(permissions)).
 			SetCreated(time.Now()).
 			Save(ctx)
 		if err != nil {

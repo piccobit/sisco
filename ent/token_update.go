@@ -67,6 +67,12 @@ func (tu *TokenUpdate) AddPermissions(u int64) *TokenUpdate {
 	return tu
 }
 
+// SetGroup sets the "group" field.
+func (tu *TokenUpdate) SetGroup(s string) *TokenUpdate {
+	tu.mutation.SetGroup(s)
+	return tu
+}
+
 // Mutation returns the TokenMutation object of the builder.
 func (tu *TokenUpdate) Mutation() *TokenMutation {
 	return tu.mutation
@@ -159,6 +165,9 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.AddedPermissions(); ok {
 		_spec.AddField(token.FieldPermissions, field.TypeUint64, value)
 	}
+	if value, ok := tu.mutation.Group(); ok {
+		_spec.SetField(token.FieldGroup, field.TypeString, value)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{token.Label}
@@ -214,6 +223,12 @@ func (tuo *TokenUpdateOne) SetPermissions(u uint64) *TokenUpdateOne {
 // AddPermissions adds u to the "permissions" field.
 func (tuo *TokenUpdateOne) AddPermissions(u int64) *TokenUpdateOne {
 	tuo.mutation.AddPermissions(u)
+	return tuo
+}
+
+// SetGroup sets the "group" field.
+func (tuo *TokenUpdateOne) SetGroup(s string) *TokenUpdateOne {
+	tuo.mutation.SetGroup(s)
 	return tuo
 }
 
@@ -338,6 +353,9 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (_node *Token, err error
 	}
 	if value, ok := tuo.mutation.AddedPermissions(); ok {
 		_spec.AddField(token.FieldPermissions, field.TypeUint64, value)
+	}
+	if value, ok := tuo.mutation.Group(); ok {
+		_spec.SetField(token.FieldGroup, field.TypeString, value)
 	}
 	_node = &Token{config: tuo.config}
 	_spec.Assign = _node.assignValues

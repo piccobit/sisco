@@ -19,6 +19,7 @@ func (Token) Fields() []ent.Field {
 		field.String("token"),
 		field.Time("created").Default(time.Now()),
 		field.Uint64("permissions"),
+		field.String("group"),
 	}
 }
 

@@ -5,9 +5,10 @@ import (
 	"encoding/hex"
 )
 
-type TokenInfo struct {
+type Token struct {
 	IsValid   bool
 	Requester string
+	Group     string
 	Perms     Permissions
 }
 

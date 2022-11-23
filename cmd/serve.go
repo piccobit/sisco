@@ -19,6 +19,7 @@ import (
 	"sisco/internal/exit"
 	"sisco/internal/rpc/srpc"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -207,21 +208,10 @@ func apiGetServiceInArea(c *gin.Context) {
 func apiDeleteService(c *gin.Context) {
 	ctx := context.Background()
 
-	bearer := c.Request.Header.Get("Bearer")
-
-	token, err := dbConn.QueryToken(ctx, bearer)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-
-		return
-	}
-
 	paramArea := c.Param("area")
 	paramService := c.Param("service")
 
-	err = dbConn.DeleteService(ctx, paramService, paramArea, token.User)
+	err := dbConn.DeleteService(ctx, paramService, paramArea)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -453,18 +443,7 @@ func apiHeartbeat(c *gin.Context) {
 	paramService := c.Param("service")
 	paramArea := c.Param("area")
 
-	bearer := c.Request.Header.Get("Bearer")
-
-	token, err := dbConn.QueryToken(ctx, bearer)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-
-		return
-	}
-
-	err = dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, paramArea, token.User, true, time.Now())
+	err := dbConn.UpdateServiceAvailableHeartbeat(ctx, paramService, paramArea, true, time.Now())
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -486,7 +465,7 @@ func apiHeartbeat(c *gin.Context) {
 	}
 }
 
-func checkPermissions(permissions auth.Permissions) gin.HandlerFunc {
+func checkPermissions(permissions auth.Permissions, checkServiceOwner bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -501,6 +480,20 @@ func checkPermissions(permissions auth.Permissions) gin.HandlerFunc {
 			} else {
 				if !token.IsValid {
 					c.AbortWithStatus(http.StatusUnauthorized)
+				} else if checkServiceOwner {
+					paramService := c.Param("service")
+					paramArea := c.Param("area")
+
+					se, err := dbConn.QueryService(ctx, paramService, paramArea)
+					if err != nil {
+						c.AbortWithStatus(http.StatusUnauthorized)
+					}
+
+					if !strings.EqualFold(token.Requester, se.Owner) {
+						c.AbortWithStatus(http.StatusUnauthorized)
+					} else {
+						c.Next()
+					}
 				} else {
 					c.Next()
 				}
@@ -566,22 +559,22 @@ func setupAPIRouter() *gin.Engine {
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
 
-	listGroup := v1Group.Group("/list", checkPermissions(auth.Admin|auth.Service|auth.User))
+	listGroup := v1Group.Group("/list", checkPermissions(auth.Admin|auth.Service|auth.User, false))
 	listGroup.GET("/areas", apiListAreas)
 	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
 	listGroup.GET("/services/in/:area", apiListServices)
 	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
 	listGroup.GET("/tags", apiListTags)
 
-	adminGroup := v1Group.Group("/admin", checkPermissions(auth.Admin|auth.Service))
+	adminGroup := v1Group.Group("/admin", checkPermissions(auth.Admin|auth.Service, false))
 	adminGroup.PUT("/heartbeat/:service/:area", apiHeartbeat)
 
 	registerGroup := adminGroup.Group("/register")
-	registerGroup.POST("/area/:area", apiRegisterArea, checkPermissions(auth.Admin))
+	registerGroup.POST("/area/:area", apiRegisterArea, checkPermissions(auth.Admin, false))
 	registerGroup.POST("/service/:service/in/:area", apiRegisterService)
 
 	deleteGroup := adminGroup.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.Admin))
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.Admin, true))
 	deleteGroup.DELETE("/area/:area", apiDeleteArea)
 	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
 

@@ -65,6 +65,7 @@ var (
 		{Name: "token", Type: field.TypeString},
 		{Name: "created", Type: field.TypeTime},
 		{Name: "permissions", Type: field.TypeUint64},
+		{Name: "group", Type: field.TypeString},
 	}
 	// TokensTable holds the schema information for the "tokens" table.
 	TokensTable = &schema.Table{

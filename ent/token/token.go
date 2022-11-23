@@ -19,6 +19,8 @@ const (
 	FieldCreated = "created"
 	// FieldPermissions holds the string denoting the permissions field in the database.
 	FieldPermissions = "permissions"
+	// FieldGroup holds the string denoting the group field in the database.
+	FieldGroup = "group"
 	// Table holds the table name of the token in the database.
 	Table = "tokens"
 )
@@ -30,6 +32,7 @@ var Columns = []string{
 	FieldToken,
 	FieldCreated,
 	FieldPermissions,
+	FieldGroup,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

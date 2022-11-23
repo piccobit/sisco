@@ -13,32 +13,34 @@ import (
 // Configuration contains the Configuration of the app.
 // Please adjust it to your own needs!
 type Configuration struct {
-	Debug                   bool     `yaml:"debug,omitempty"`
-	GinReleaseMode          bool     `yaml:"ginReleaseMode,omitempty"`
-	Port                    int      `yaml:"port"`
-	GRPCPort                int      `yaml:"gRPCPort"`
-	UseTLS                  bool     `yaml:"useTLS"`
-	TLSCertFile             string   `yaml:"tlsCertFile"`
-	TLSKeyFile              string   `yaml:"tlsKeyFile"`
-	DBType                  string   `yaml:"dbType"`
-	DBHost                  string   `yaml:"dbHost"`
-	DBPort                  int      `yaml:"dbPort"`
-	DBName                  string   `yaml:"dbName"`
-	DBUser                  string   `yaml:"dbUser"`
-	DBPassword              string   `yaml:"dbPassword"`
-	DBSSLMode               string   `yaml:"dbSSLMode"`
-	TrustedProxies          []string `yaml:"trustedProxies,omitempty"`
-	LdapURL                 string   `yaml:"ldapURL"`
-	LdapBaseDN              string   `yaml:"ldapBaseDN"`
-	LdapBindDN              string   `yaml:"ldapBindDN"`
-	LdapBindPassword        string   `yaml:"ldapBindPassword"`
-	LdapUsersGroupDN        string   `yaml:"ldapUsersGroupDN"`
-	LdapServicesGroupDN     string   `yaml:"ldapServicesGroupDN"`
-	LdapAdminsGroupDN       string   `yaml:"ldapAdminsGroupDN"`
-	LdapFilterUser          string   `yaml:"ldapFilterUser"`
-	LdapFilterGroup         string   `yaml:"ldapFilterGroup"`
-	TokenValidInSeconds     int      `yaml:"tokenValidInSeconds"`
-	HeartbeatCheckInSeconds int      `yaml:"heartbeatCheckInSeconds"`
+	Debug                    bool     `yaml:"debug,omitempty"`
+	GinReleaseMode           bool     `yaml:"ginReleaseMode,omitempty"`
+	Port                     int      `yaml:"port"`
+	GRPCPort                 int      `yaml:"gRPCPort"`
+	UseTLS                   bool     `yaml:"useTLS"`
+	TLSCertFile              string   `yaml:"tlsCertFile"`
+	TLSKeyFile               string   `yaml:"tlsKeyFile"`
+	DBType                   string   `yaml:"dbType"`
+	DBHost                   string   `yaml:"dbHost"`
+	DBPort                   int      `yaml:"dbPort"`
+	DBName                   string   `yaml:"dbName"`
+	DBUser                   string   `yaml:"dbUser"`
+	DBPassword               string   `yaml:"dbPassword"`
+	DBSSLMode                string   `yaml:"dbSSLMode"`
+	TrustedProxies           []string `yaml:"trustedProxies,omitempty"`
+	LdapURL                  string   `yaml:"ldapURL"`
+	LdapBaseDN               string   `yaml:"ldapBaseDN"`
+	LdapBindDN               string   `yaml:"ldapBindDN"`
+	LdapBindPassword         string   `yaml:"ldapBindPassword"`
+	LdapUsersGroup           string   `yaml:"ldapUsersGroup"`
+	LdapServicesGroup        string   `yaml:"ldapServicesGroup"`
+	LdapAdminsGroup          string   `yaml:"ldapAdminsGroup"`
+	LdapFilterUserAttribute  string   `yaml:"ldapFilterUserAttribute"`
+	LdapFilterGroupAttribute string   `yaml:"ldapFilterGroupAttribute"`
+	LdapFilterUser           string   `yaml:"ldapFilterUser"`
+	LdapFilterGroup          string   `yaml:"ldapFilterGroup"`
+	TokenValidInSeconds      int      `yaml:"tokenValidInSeconds"`
+	HeartbeatCheckInSeconds  int      `yaml:"heartbeatCheckInSeconds"`
 }
 
 var (

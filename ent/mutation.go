@@ -1768,6 +1768,7 @@ type TokenMutation struct {
 	created        *time.Time
 	permissions    *uint64
 	addpermissions *int64
+	group          *string
 	clearedFields  map[string]struct{}
 	done           bool
 	oldValue       func(context.Context) (*Token, error)
@@ -2036,6 +2037,42 @@ func (m *TokenMutation) ResetPermissions() {
 	m.addpermissions = nil
 }
 
+// SetGroup sets the "group" field.
+func (m *TokenMutation) SetGroup(s string) {
+	m.group = &s
+}
+
+// Group returns the value of the "group" field in the mutation.
+func (m *TokenMutation) Group() (r string, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroup returns the old "group" field's value of the Token entity.
+// If the Token object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenMutation) OldGroup(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroup: %w", err)
+	}
+	return oldValue.Group, nil
+}
+
+// ResetGroup resets all changes to the "group" field.
+func (m *TokenMutation) ResetGroup() {
+	m.group = nil
+}
+
 // Where appends a list predicates to the TokenMutation builder.
 func (m *TokenMutation) Where(ps ...predicate.Token) {
 	m.predicates = append(m.predicates, ps...)
@@ -2055,7 +2092,7 @@ func (m *TokenMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TokenMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.user != nil {
 		fields = append(fields, token.FieldUser)
 	}
@@ -2067,6 +2104,9 @@ func (m *TokenMutation) Fields() []string {
 	}
 	if m.permissions != nil {
 		fields = append(fields, token.FieldPermissions)
+	}
+	if m.group != nil {
+		fields = append(fields, token.FieldGroup)
 	}
 	return fields
 }
@@ -2084,6 +2124,8 @@ func (m *TokenMutation) Field(name string) (ent.Value, bool) {
 		return m.Created()
 	case token.FieldPermissions:
 		return m.Permissions()
+	case token.FieldGroup:
+		return m.Group()
 	}
 	return nil, false
 }
@@ -2101,6 +2143,8 @@ func (m *TokenMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCreated(ctx)
 	case token.FieldPermissions:
 		return m.OldPermissions(ctx)
+	case token.FieldGroup:
+		return m.OldGroup(ctx)
 	}
 	return nil, fmt.Errorf("unknown Token field %s", name)
 }
@@ -2137,6 +2181,13 @@ func (m *TokenMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPermissions(v)
+		return nil
+	case token.FieldGroup:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroup(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Token field %s", name)
@@ -2213,6 +2264,9 @@ func (m *TokenMutation) ResetField(name string) error {
 		return nil
 	case token.FieldPermissions:
 		m.ResetPermissions()
+		return nil
+	case token.FieldGroup:
+		m.ResetGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown Token field %s", name)

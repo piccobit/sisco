@@ -52,6 +52,12 @@ func (tc *TokenCreate) SetPermissions(u uint64) *TokenCreate {
 	return tc
 }
 
+// SetGroup sets the "group" field.
+func (tc *TokenCreate) SetGroup(s string) *TokenCreate {
+	tc.mutation.SetGroup(s)
+	return tc
+}
+
 // Mutation returns the TokenMutation object of the builder.
 func (tc *TokenCreate) Mutation() *TokenMutation {
 	return tc.mutation
@@ -149,6 +155,9 @@ func (tc *TokenCreate) check() error {
 	if _, ok := tc.mutation.Permissions(); !ok {
 		return &ValidationError{Name: "permissions", err: errors.New(`ent: missing required field "Token.permissions"`)}
 	}
+	if _, ok := tc.mutation.Group(); !ok {
+		return &ValidationError{Name: "group", err: errors.New(`ent: missing required field "Token.group"`)}
+	}
 	return nil
 }
 
@@ -191,6 +200,10 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.Permissions(); ok {
 		_spec.SetField(token.FieldPermissions, field.TypeUint64, value)
 		_node.Permissions = value
+	}
+	if value, ok := tc.mutation.Group(); ok {
+		_spec.SetField(token.FieldGroup, field.TypeString, value)
+		_node.Group = value
 	}
 	return _node, _spec
 }

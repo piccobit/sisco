@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"sisco/internal/auth"
+	"sisco/internal/cfg"
 	"sisco/internal/rpc/pb"
 	"strings"
 )
@@ -35,11 +36,13 @@ func (s *server) DeleteService(ctx context.Context, in *pb.DeleteServiceRequest)
 		return &pb.DeleteServiceReply{}, status.Error(codes.PermissionDenied, err.Error())
 	}
 
-	if !strings.EqualFold(token.Requester, se.Owner) {
-		return &pb.DeleteServiceReply{}, status.Error(codes.PermissionDenied, fmt.Sprintf("requester '%s' is NOT owner of service '%s in area '%s", token.Requester, in.GetService(), in.GetArea()))
+	if token.Group != cfg.Config.LdapAdminsGroup {
+		if !strings.EqualFold(token.Requester, se.Owner) {
+			return &pb.DeleteServiceReply{}, status.Error(codes.PermissionDenied, fmt.Sprintf("requester '%s' is NOT owner of service '%s in area '%s", token.Requester, in.GetService(), in.GetArea()))
+		}
 	}
 
-	err = dbConn.DeleteService(ctx, in.GetService(), in.GetArea(), se.Owner)
+	err = dbConn.DeleteService(ctx, in.GetService(), in.GetArea())
 	if err != nil {
 		return &pb.DeleteServiceReply{}, status.Error(codes.Aborted, err.Error())
 	}
