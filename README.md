@@ -6,6 +6,7 @@
 * [Database Setup](#database-setup)
 * [Starting the Server](#starting-the-server)
 * [Areas, Services & Tags](#areas-services--tags)
+* [Permissions](#permissions)
 * [REST API Endpoints](#rest-api-endpoints)
     * [Authentication & Authorization](#authentication--authorization)
     * [Register an Area](#register-an-area)
@@ -120,6 +121,29 @@ sisco serve
 ## Areas, Services & Tags
 
 **Areas** allow you to define multiple **services** with the same name. Think of it as some sort of *prefix*. **Tags** can be added to **services**, allowing you to group them for example by functionality.
+
+## Permissions
+
+`sisco` uses several permission levels to restict access to the provided endpoints. The table below summarizes the current usage.
+
+| Access Right           | Admin Group | Service Group | User Group | Anonymous |
+| :--------------------- | :---------: | :-----------: | :--------: | :-------: |
+| Login                  | X           | X             | X          | X         |
+| List areas             | X           | X             | X          |           |
+| List service in area   | X           | X             | X          |           |
+| List services in area  | X           | X             | X          |           |
+| List services with tag | X           | X             | X          |           |
+| List tags              | X           | X             | X          |           |
+| Register area          | X           |               |            |           |
+| Register service       | X           | X             |            |           |
+| Delete area            | X           |               |            |           |
+| Delete service         | X           | X (1)         |            |           |
+| Delete tag             | X           | X             |            |           |
+| Heartbeat              | X           | X (1)         |            |           |
+
+*Notes*:
+
+(1): A service can be only deleted or updated by the service owner which has registered the service.
 
 ## REST API Endpoints
 
