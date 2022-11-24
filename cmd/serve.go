@@ -574,7 +574,7 @@ func setupAPIRouter() *gin.Engine {
 	registerGroup.POST("/service/:service/in/:area", apiRegisterService)
 
 	deleteGroup := adminGroup.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.Admin|auth.ServiceOwnerOnly))
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.ServiceOwnerOnly))
 	deleteGroup.DELETE("/area/:area", apiDeleteArea)
 	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
 
