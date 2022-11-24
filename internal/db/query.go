@@ -19,7 +19,7 @@ func (c *Client) QueryAuthTokenInfo(ctx context.Context, bearer string, permissi
 	unknown := auth.Token{
 		IsValid:   false,
 		Requester: "",
-		Perms:     auth.Unknown,
+		Perms:     auth.Unauthorized,
 	}
 
 	t, err := c.dbClient.Token.Query().Where(token.Token(bearer)).Only(ctx)
@@ -58,12 +58,12 @@ func (c *Client) QueryAuthToken(ctx context.Context, user string, password strin
 
 	lc, err := ldapconn.New(&cfg.Config)
 	if err != nil {
-		return "", auth.Unknown, nil
+		return "", auth.Unauthorized, nil
 	}
 
 	group, permissions, err := lc.Authenticate(user, password)
 	if err != nil {
-		return "", auth.Unknown, nil
+		return "", auth.Unauthorized, nil
 	}
 
 	t, err := c.dbClient.Token.Query().Where(token.User(user)).Only(ctx)
@@ -75,7 +75,7 @@ func (c *Client) QueryAuthToken(ctx context.Context, user string, password strin
 			SetPermissions(uint64(permissions)).
 			Save(ctx)
 		if err != nil {
-			return "", auth.Unknown, nil
+			return "", auth.Unauthorized, nil
 		}
 	} else {
 		_, err = c.dbClient.Token.Update().
@@ -84,7 +84,7 @@ func (c *Client) QueryAuthToken(ctx context.Context, user string, password strin
 			SetCreated(time.Now()).
 			Save(ctx)
 		if err != nil {
-			return "", auth.Unknown, nil
+			return "", auth.Unauthorized, nil
 		}
 	}
 

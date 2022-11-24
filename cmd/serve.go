@@ -465,7 +465,7 @@ func apiHeartbeat(c *gin.Context) {
 	}
 }
 
-func checkPermissions(permissions auth.Permissions, checkServiceOwner bool) gin.HandlerFunc {
+func checkPermissions(permissions auth.Permissions) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -480,7 +480,7 @@ func checkPermissions(permissions auth.Permissions, checkServiceOwner bool) gin.
 			} else {
 				if !token.IsValid {
 					c.AbortWithStatus(http.StatusUnauthorized)
-				} else if checkServiceOwner {
+				} else if (permissions & auth.ServiceOwnerOnly) != 0 {
 					paramService := c.Param("service")
 					paramArea := c.Param("area")
 
@@ -559,22 +559,22 @@ func setupAPIRouter() *gin.Engine {
 	v1Group := router.Group("/api/v1")
 	v1Group.POST("/login", apiLogin)
 
-	listGroup := v1Group.Group("/list", checkPermissions(auth.Admin|auth.Service|auth.User, false))
+	listGroup := v1Group.Group("/list", checkPermissions(auth.Admin|auth.Service|auth.User))
 	listGroup.GET("/areas", apiListAreas)
 	listGroup.GET("/service/:service/in/:area", apiGetServiceInArea)
 	listGroup.GET("/services/in/:area", apiListServices)
 	listGroup.GET("/services/with/:tag", apiListServicesWithTag)
 	listGroup.GET("/tags", apiListTags)
 
-	adminGroup := v1Group.Group("/admin", checkPermissions(auth.Admin|auth.Service, false))
+	adminGroup := v1Group.Group("/admin", checkPermissions(auth.Admin|auth.Service))
 	adminGroup.PUT("/heartbeat/:service/:area", apiHeartbeat)
 
 	registerGroup := adminGroup.Group("/register")
-	registerGroup.POST("/area/:area", apiRegisterArea, checkPermissions(auth.Admin, false))
+	registerGroup.POST("/area/:area", apiRegisterArea, checkPermissions(auth.Admin))
 	registerGroup.POST("/service/:service/in/:area", apiRegisterService)
 
 	deleteGroup := adminGroup.Group("/delete")
-	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.Admin, true))
+	deleteGroup.DELETE("/service/:service/in/:area", apiDeleteService, checkPermissions(auth.Admin|auth.ServiceOwnerOnly))
 	deleteGroup.DELETE("/area/:area", apiDeleteArea)
 	deleteGroup.DELETE("/tag/:tag", apiDeleteTag)
 

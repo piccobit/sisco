@@ -19,7 +19,7 @@ func (c *Client) Login(user string, password string) (string, auth.Permissions, 
 		Password: password,
 	})
 	if err != nil {
-		return "", auth.Unknown, err
+		return "", auth.Unauthorized, err
 	}
 
 	return r.GetToken(), auth.Permissions(r.GetPermissions()), nil

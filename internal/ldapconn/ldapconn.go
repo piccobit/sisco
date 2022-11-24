@@ -82,18 +82,18 @@ func (lc *LDAPConn) Authenticate(user string, password string) (string, auth.Per
 
 	result, err := lc.ldapConn.Search(searchReq)
 	if err != nil {
-		return "", auth.Unknown, err
+		return "", auth.Unauthorized, err
 	}
 
 	if len(result.Entries) == 0 {
-		return "", auth.Unknown, err
+		return "", auth.Unauthorized, err
 	}
 
 	dn := result.Entries[0].DN
 
 	err = lc.ldapConn.Bind(dn, password)
 	if err != nil {
-		return "", auth.Unknown, err
+		return "", auth.Unauthorized, err
 	}
 
 	filter = replace(lc.config.LdapFilterGroup, &needles)
@@ -117,10 +117,10 @@ func (lc *LDAPConn) Authenticate(user string, password string) (string, auth.Per
 
 	result, err = lc.ldapConn.Search(searchReq)
 	if err != nil {
-		return "", auth.Unknown, err
+		return "", auth.Unauthorized, err
 	}
 
-	permissions := auth.Unknown
+	permissions := auth.Unauthorized
 
 	for _, e := range result.Entries {
 		tmpGroup := e.GetAttributeValue("uid")
